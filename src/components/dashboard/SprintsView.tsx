@@ -21,6 +21,7 @@ import {
   Folder
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useAuth } from '../../context/AuthContext';
 
 export interface SprintTask {
   id: string;
@@ -117,12 +118,18 @@ const INITIAL_SPRINT_TASKS: SprintTask[] = [
 ];
 
 export const SprintsView: React.FC = () => {
+  const { user } = useAuth();
+  const isDemoUser = user?.id === 'u_joy_1';
+  const currentUserName = user?.name || 'You';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+
   const [tasks, setTasks] = useState<SprintTask[]>(() => {
-    const saved = localStorage.getItem('clickup_sprint_tasks_v1');
+    const storageKey = isDemoUser ? 'clickup_sprint_tasks_v1' : `clickup_sprint_tasks_${user?.id || 'guest'}`;
+    const saved = localStorage.getItem(storageKey);
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* ignore */ }
     }
-    return INITIAL_SPRINT_TASKS;
+    return isDemoUser ? INITIAL_SPRINT_TASKS : [];
   });
 
   const [activeSprint, setActiveSprint] = useState<string>('sprint-52');
@@ -134,8 +141,9 @@ export const SprintsView: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('clickup_sprint_tasks_v1', JSON.stringify(tasks));
-  }, [tasks]);
+    const storageKey = isDemoUser ? 'clickup_sprint_tasks_v1' : `clickup_sprint_tasks_${user?.id || 'guest'}`;
+    localStorage.setItem(storageKey, JSON.stringify(tasks));
+  }, [tasks, user?.id, isDemoUser]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -165,7 +173,7 @@ export const SprintsView: React.FC = () => {
       points: Number(newTaskPoints),
       status: newTaskStatus,
       priority: newTaskPriority,
-      assignee: { name: 'Joy Sarkar', avatar: 'JS', color: '#7c3aed' },
+      assignee: { name: currentUserName, avatar: userInitials, color: '#7c3aed' },
       dueDate: 'Jul 24'
     };
 

@@ -8,6 +8,7 @@ import {
   Sparkles,
   CheckCircle2
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ interface InviteModalProps {
 }
 
 export const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onInviteSent }) => {
+  const { user } = useAuth();
+  const workspaceName = user?.workspaceName || (user?.name ? `${user.name}'s Workspace` : 'My Workspace');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'Member' | 'Admin' | 'Guest'>('Member');
   const [spaces, setSpaces] = useState({
@@ -80,7 +83,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onInv
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                Invite to Joy Kumar Yuv's Workspace
+                Invite to {workspaceName}
               </h3>
               <p style={{ margin: '2px 0 0 0', fontSize: '0.74rem', color: '#64748b' }}>
                 Collaborate on Sales CRM and team sprints

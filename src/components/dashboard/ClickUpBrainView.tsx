@@ -45,9 +45,19 @@ import {
   MessageSquare,
   Award,
   Globe,
-  Edit2
+  Edit2,
+  Database,
+  GitBranch,
+  ToggleLeft,
+  ToggleRight,
+  Clock,
+  Cpu,
+  Coins,
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 import { TaskItem } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 // ClickUp AI Petal Icon
 const ClickUpAIPetalIcon: React.FC<{ size?: number }> = ({ size = 22 }) => (
@@ -232,6 +242,43 @@ export interface ArtifactItem {
   content?: string;
 }
 
+export interface BrainActivityItem {
+  id: string;
+  agentName: string;
+  actionTitle: string;
+  category: 'triage' | 'sprint' | 'crm' | 'sync' | 'code' | 'general';
+  status: 'success' | 'running' | 'warning';
+  modelUsed: string;
+  tokensUsed: number;
+  latencyMs: number;
+  timestamp: string;
+  details: string;
+  triggeredBy: string;
+}
+
+export interface BrainConnectionItem {
+  id: string;
+  name: string;
+  category: string;
+  iconType: 'supabase' | 'github' | 'slack' | 'gdrive' | 'figma' | 'webhook';
+  status: 'connected' | 'available';
+  description: string;
+  lastSync: string;
+  syncItemCount?: string;
+  configUrl?: string;
+}
+
+export interface BrainSkillItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  enabled: boolean;
+  model: string;
+  runsCount: number;
+  triggerType: string;
+}
+
 const DEFAULT_MODELS: Record<AIProvider, string[]> = {
   openai: ['gpt-4o', 'gpt-4o-mini', 'o1-preview', 'gpt-4-turbo'],
   gemini: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash-exp'],
@@ -251,18 +298,65 @@ export const ClickUpBrainView: React.FC<ClickUpBrainViewProps> = ({
   onAddTask,
   onNavigateToTab 
 }) => {
-  // Navigation inside AI: Ask Brain | Create Agent | Artifacts | Skills
-  const [activeAISubtab, setActiveAISubtab] = useState<'ask' | 'agents' | 'artifacts' | 'skills'>('ask');
+  const { user } = useAuth();
+  const isDemoUser = user?.id === 'u_joy_1';
+  const currentUserName = user?.name || (isDemoUser ? 'Joy Kumar Yuv' : 'User');
+  const workspaceName = user?.workspaceName || (isDemoUser ? "Joy Kumar Yuv's Workspace" : `${currentUserName}'s Team Workspace`);
+  const userInitials = (user?.name || (isDemoUser ? 'Joy Kumar Yuv' : 'User')).split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  const conversationsStorageKey = `clickup_brain_conversations_${user?.id || 'guest'}`;
+  const artifactsStorageKey = `clickup_artifacts_${user?.id || 'guest'}`;
+  const connectionsStorageKey = `clickup_brain_connections_${user?.id || 'guest'}`;
+  const skillsStorageKey = `clickup_brain_skills_${user?.id || 'guest'}`;
+  const activityStorageKey = `clickup_brain_activity_${user?.id || 'guest'}`;
+
+  // Navigation inside AI: Ask Brain | Create Agent | Artifacts | Skills | Activity | Analytics | Connections
+  const [activeAISubtab, setActiveAISubtab] = useState<'ask' | 'agents' | 'artifacts' | 'skills' | 'activity' | 'analytics' | 'connections'>('ask');
   
-  // Conversations state (Screenshots 1 & 2)
+  // Conversations state
   const [conversations, setConversations] = useState<BrainConversation[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_brain_conversations_v2');
+      const saved = localStorage.getItem(conversationsStorageKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return DEFAULT_CONVERSATIONS;
+    if (isDemoUser) return DEFAULT_CONVERSATIONS;
+    return [
+      {
+        id: 'conv-welcome',
+        title: `Welcome to ${workspaceName}`,
+        createdAt: 'Just now',
+        messages: [
+          {
+            id: 'msg-w-user',
+            sender: 'user',
+            text: `Hello Brain! How can you help me in ${workspaceName}?`,
+            timestamp: 'Just now'
+          },
+          {
+            id: 'msg-w-ai',
+            sender: 'ai',
+            text: `Hello ${currentUserName}! I'm ClickUp Brain², your workspace AI copilot. I can search across all your tasks and docs, auto-triage incoming work, predict sprint velocity, and automate team workflows. What would you like to build or explore today?`,
+            timestamp: 'Just now',
+            providerUsed: 'Brain²',
+            modelUsed: 'Max',
+            stepsCount: 1,
+            stepsDetails: [
+              `Connected to ${workspaceName}`,
+              `Knowledge graph indexed for ${currentUserName}`
+            ],
+            suggestions: [
+              'Create my first task',
+              'Explain what Brain can do',
+              'Generate a sprint plan'
+            ]
+          }
+        ]
+      }
+    ];
   });
-  const [activeConversationId, setActiveConversationId] = useState<string>('conv-getting-started');
+  const [activeConversationId, setActiveConversationId] = useState<string>(() => {
+    return isDemoUser ? 'conv-getting-started' : 'conv-welcome';
+  });
 
   // Prompt & Chat state for Brain²
   const [inputText, setInputText] = useState('');
@@ -274,24 +368,256 @@ export const ClickUpBrainView: React.FC<ClickUpBrainViewProps> = ({
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({});
   const [feedbackState, setFeedbackState] = useState<Record<string, 'up' | 'down'>>({});
 
-  // Super Agents state (Screenshots 1 & 2)
+  // Super Agents state
   const [agentPrompt, setAgentPrompt] = useState('');
   const [selectedAgentCategory, setSelectedAgentCategory] = useState('Apps');
   const [myAgentsCount, setMyAgentsCount] = useState(1);
 
-  // Artifacts state (Screenshot 3)
+  // Artifacts state
   const [artifacts, setArtifacts] = useState<ArtifactItem[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_artifacts');
+      const saved = localStorage.getItem(artifactsStorageKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return [];
+    return isDemoUser ? [
+      {
+        id: 'art-1',
+        title: 'Q4 Product Roadmap & Sprint Priorities',
+        type: 'deck',
+        description: 'Automated executive presentation covering roadmap delivery.',
+        createdAt: 'Yesterday',
+        author: currentUserName,
+        content: '# Q4 Product Roadmap\n\nTarget delivery for ClickUp 3.0 Enterprise features.'
+      }
+    ] : [];
   });
   const [activeArtifactTab, setActiveArtifactTab] = useState<'all' | 'me' | 'archived' | 'kits'>('all');
   const [isNewArtifactModalOpen, setIsNewArtifactModalOpen] = useState(false);
   const [newArtifactTitle, setNewArtifactTitle] = useState('');
   const [newArtifactType, setNewArtifactType] = useState<ArtifactItem['type']>('deck');
   const [selectedArtifactPreview, setSelectedArtifactPreview] = useState<ArtifactItem | null>(null);
+
+  // Activity Feed state
+  const INITIAL_ACTIVITIES: BrainActivityItem[] = [
+    {
+      id: 'act-1',
+      agentName: 'Backlog Auto-Triager',
+      actionTitle: 'Classified 4 incoming backlog items into CRM Pipeline',
+      category: 'triage',
+      status: 'success',
+      modelUsed: 'GPT-4o',
+      tokensUsed: 380,
+      latencyMs: 740,
+      timestamp: '3m ago',
+      details: 'Analyzed task titles, set priority to High and assigned to pipeline stages.',
+      triggeredBy: 'Autonomous Event Trigger'
+    },
+    {
+      id: 'act-2',
+      agentName: 'Sprint Burndown Forecaster',
+      actionTitle: 'Calculated sprint velocity and completion probability (94.2%)',
+      category: 'sprint',
+      status: 'success',
+      modelUsed: 'Gemini 2.0 Flash',
+      tokensUsed: 512,
+      latencyMs: 620,
+      timestamp: '18m ago',
+      details: 'Aggregated story points across 12 sprint issues against past 3 weeks velocity.',
+      triggeredBy: 'Scheduled Cron'
+    },
+    {
+      id: 'act-3',
+      agentName: 'Supabase Vector Sync',
+      actionTitle: 'Updated knowledge base embeddings for workspace tasks',
+      category: 'sync',
+      status: 'success',
+      modelUsed: 'Text-Embedding-3-Small',
+      tokensUsed: 1240,
+      latencyMs: 890,
+      timestamp: '45m ago',
+      details: 'Re-indexed tasks and user comments into PostgreSQL pgvector.',
+      triggeredBy: 'Database Webhook'
+    },
+    {
+      id: 'act-4',
+      agentName: 'Code Quality Inspector',
+      actionTitle: 'Validated Pull Request security and typing compliance',
+      category: 'code',
+      status: 'success',
+      modelUsed: 'Claude 3.5 Sonnet',
+      tokensUsed: 890,
+      latencyMs: 1100,
+      timestamp: '2h ago',
+      details: 'Scanned 14 files, verified 0 lint errors and 100% strict TypeScript types.',
+      triggeredBy: 'GitHub Integration'
+    }
+  ];
+
+  const [activities, setActivities] = useState<BrainActivityItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(activityStorageKey);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return INITIAL_ACTIVITIES;
+  });
+  const [activityFilter, setActivityFilter] = useState<'all' | 'success' | 'running' | 'warning'>('all');
+  const [activitySearch, setActivitySearch] = useState('');
+  const [selectedActivityItem, setSelectedActivityItem] = useState<BrainActivityItem | null>(null);
+
+  // Connections state
+  const INITIAL_CONNECTIONS: BrainConnectionItem[] = [
+    {
+      id: 'conn-supabase',
+      name: 'Supabase Cloud Database',
+      category: 'Database & Realtime',
+      iconType: 'supabase',
+      status: 'connected',
+      description: 'PostgreSQL storage, authentication, and realtime task sync.',
+      lastSync: 'Just now',
+      syncItemCount: '4 tables, 18 records'
+    },
+    {
+      id: 'conn-github',
+      name: 'GitHub Repository',
+      category: 'Code & Version Control',
+      iconType: 'github',
+      status: 'connected',
+      description: 'Joy185c/OneDesk repository indexed for AI code review and issue tracking.',
+      lastSync: '5m ago',
+      syncItemCount: '42 commits indexed'
+    },
+    {
+      id: 'conn-slack',
+      name: 'Slack Workspace',
+      category: 'Team Communication',
+      iconType: 'slack',
+      status: 'connected',
+      description: 'Bi-directional AI notifications routed to #general and #dev-team.',
+      lastSync: '15m ago',
+      syncItemCount: '2 channels linked'
+    },
+    {
+      id: 'conn-gdrive',
+      name: 'Google Drive & Workspace',
+      category: 'Cloud Storage & Docs',
+      iconType: 'gdrive',
+      status: 'available',
+      description: 'Connect Google Docs, Sheets, and Slides to index external documentation into Brain.',
+      lastSync: 'Never'
+    },
+    {
+      id: 'conn-figma',
+      name: 'Figma Design System',
+      category: 'Design & Prototyping',
+      iconType: 'figma',
+      status: 'available',
+      description: 'Link design frames and component tokens directly to tasks.',
+      lastSync: 'Never'
+    },
+    {
+      id: 'conn-webhook',
+      name: 'Custom Knowledge Webhook',
+      category: 'Developer API',
+      iconType: 'webhook',
+      status: 'available',
+      description: 'Stream internal REST payloads and docs into ClickUp Brain vectors.',
+      lastSync: 'Never'
+    }
+  ];
+
+  const [connections, setConnections] = useState<BrainConnectionItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(connectionsStorageKey);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return INITIAL_CONNECTIONS;
+  });
+  const [isSyncingAll, setIsSyncingAll] = useState(false);
+  const [isAddConnectionModalOpen, setIsAddConnectionModalOpen] = useState(false);
+  const [selectedConnectionFilter, setSelectedConnectionFilter] = useState<'all' | 'connected' | 'available'>('all');
+  const [newConnName, setNewConnName] = useState('');
+  const [newConnType, setNewConnType] = useState<BrainConnectionItem['iconType']>('gdrive');
+  const [newConnApiKey, setNewConnApiKey] = useState('');
+
+  // Skills state
+  const INITIAL_SKILLS: BrainSkillItem[] = [
+    {
+      id: 'skill-triage',
+      name: 'Task Auto-Triage & Categorization',
+      category: 'Productivity',
+      description: 'Automatically detects task urgency, assigns the right team member, and sets appropriate labels.',
+      enabled: true,
+      model: 'GPT-4o',
+      runsCount: 142,
+      triggerType: 'On Task Created'
+    },
+    {
+      id: 'skill-standup',
+      name: 'Daily Standup Bulletin Compiler',
+      category: 'Team Workflow',
+      description: 'Summarizes completed work from yesterday, current blockers, and today’s goals into a clean digest.',
+      enabled: true,
+      model: 'Gemini 2.0 Flash',
+      runsCount: 88,
+      triggerType: 'Daily at 9:00 AM'
+    },
+    {
+      id: 'skill-code-review',
+      name: 'GitHub PR Code Quality Inspector',
+      category: 'Engineering',
+      description: 'Scans pull requests for potential security bugs, performance bottlenecks, and TypeScript type safety.',
+      enabled: true,
+      model: 'Claude 3.5 Sonnet',
+      runsCount: 65,
+      triggerType: 'On Pull Request Open'
+    },
+    {
+      id: 'skill-sentiment',
+      name: 'Customer Deal Sentiment Analysis',
+      category: 'Sales & CRM',
+      description: 'Evaluates customer conversation notes to detect urgency, positive buying signals, and churn risk.',
+      enabled: false,
+      model: 'GPT-4o',
+      runsCount: 29,
+      triggerType: 'On CRM Lead Update'
+    },
+    {
+      id: 'skill-transcribe',
+      name: 'Meeting Transcriber & Action Items',
+      category: 'Collaboration',
+      description: 'Extracts clear checklists, decisions, and action items directly from meeting transcripts.',
+      enabled: false,
+      model: 'Whisper + Max',
+      runsCount: 17,
+      triggerType: 'On Media Upload'
+    },
+    {
+      id: 'skill-velocity',
+      name: 'Sprint Velocity & Risk Forecaster',
+      category: 'Agile',
+      description: 'Predicts sprint completion date and flags tasks at risk of spilling over into the next cycle.',
+      enabled: true,
+      model: 'Brain² Engine',
+      runsCount: 54,
+      triggerType: 'Every 6 Hours'
+    }
+  ];
+
+  const [skills, setSkills] = useState<BrainSkillItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(skillsStorageKey);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return INITIAL_SKILLS;
+  });
+  const [isNewSkillModalOpen, setIsNewSkillModalOpen] = useState(false);
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillDesc, setNewSkillDesc] = useState('');
+  const [newSkillCat, setNewSkillCat] = useState('Productivity');
+  const [skillsFilter, setSkillsFilter] = useState('All');
+
+  // Analytics state
+  const [analyticsTimeframe, setAnalyticsTimeframe] = useState<'7d' | '30d' | 'all'>('7d');
 
   // API Config state
   const [isApiModalOpen, setIsApiModalOpen] = useState(false);
@@ -409,8 +735,8 @@ export const ClickUpBrainView: React.FC<ClickUpBrainViewProps> = ({
   const executeAIRequest = async (prompt: string): Promise<{ text: string; providerUsed: string; modelUsed: string }> => {
     if (apiConfig.apiKey.trim()) {
       const workspaceContext = `You are ClickUp Brain, the intelligent workspace AI assistant in ClickUp 3.0.
-Workspace: "Joy Kumar Yuv's Workspace".
-Current user: Joy Kumar Yuv.
+Workspace: "${workspaceName}".
+Current user: ${currentUserName}.
 Active Tasks (${tasks.length} total):
 ${tasks.map(t => `- [${t.key}] ${t.title} (Status: ${t.status}, Priority: ${t.priority})`).join('\n')}
 Assist the user with clear, structured markdown, actionable bullet points, or code. Be helpful, concise, and professional.`;
@@ -541,12 +867,12 @@ Assist the user with clear, structured markdown, actionable bullet points, or co
     await new Promise(r => setTimeout(r, 600));
     return {
       text: `### 🌸 ClickUp Brain² Response
-I have analyzed your query against all active docs, CRM boards, and calendar events in **Joy Kumar Yuv's Workspace**.
+I have analyzed your query against all active docs, workspace tasks, and knowledge bases in **${workspaceName}**.
 
 **Key Highlights**:
-- You have **${tasks.length} active tasks** in your current sprint.
-- Google Calendar sync is active for **joy185c@gmail.com**.
-- Next scheduled sync event: *Design Sprint Feedback* (2:00 PM).
+- You have **${tasks.length} active tasks** in your workspace.
+- Autonomous intelligence agent is active and running for **${currentUserName}**.
+- Realtime vector knowledge index: **Up to date**.
 
 💡 *Pro Tip: Connect your personal OpenAI, Google Gemini, or Groq API key in **AI Settings** to unlock unlimited custom LLM reasoning across your entire organization!*`,
       providerUsed: 'ClickUp Brain (Standard)',
@@ -558,9 +884,33 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
 
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_brain_conversations_v2', JSON.stringify(conversations));
+      localStorage.setItem(conversationsStorageKey, JSON.stringify(conversations));
     } catch (e) {}
-  }, [conversations]);
+  }, [conversations, conversationsStorageKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(artifactsStorageKey, JSON.stringify(artifacts));
+    } catch (e) {}
+  }, [artifacts, artifactsStorageKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(activityStorageKey, JSON.stringify(activities));
+    } catch (e) {}
+  }, [activities, activityStorageKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(connectionsStorageKey, JSON.stringify(connections));
+    } catch (e) {}
+  }, [connections, connectionsStorageKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(skillsStorageKey, JSON.stringify(skills));
+    } catch (e) {}
+  }, [skills, skillsStorageKey]);
 
   const handleSendMessage = async (textToSend?: string) => {
     const query = textToSend || inputText;
@@ -600,7 +950,7 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
         modelUsed: result.modelUsed,
         stepsCount: 1,
         stepsDetails: [
-          `Analyzed Joy Kumar Yuv's Workspace tasks and documents`,
+          `Analyzed ${workspaceName} tasks and documents`,
           `Applied ClickUp Brain² reasoning with ${result.modelUsed || 'Max'}`
         ],
         suggestions: [
@@ -652,7 +1002,7 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
           title: 'Acme Corp Enterprise Deal ($45,000)',
           status: 'TODO',
           priority: 'Urgent',
-          assignee: { name: 'Joy Kumar Yuv', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces', role: 'Workspace Owner' },
+          assignee: { name: currentUserName, avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces', role: 'Workspace Owner' },
           dueDate: 'Oct 28',
           timeEstimate: '6h',
           tags: ['Enterprise', 'Lead'],
@@ -721,7 +1071,7 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
       const reminderMsg: Message = {
         id: 'msg-sug-' + Date.now(),
         sender: 'ai',
-        text: '⏰ Set calendar reminders for lead owners (Joy Kumar Yuv, Priya Gupta) before Friday close (5:00 PM).',
+        text: `⏰ Set calendar reminders for lead owners (${currentUserName}, Priya Gupta) before Friday close (5:00 PM).`,
         timestamp: 'Just now',
         providerUsed: 'Brain²',
         modelUsed: 'Max'
@@ -773,15 +1123,160 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
       type,
       description: 'AI-generated interactive artifact powered by ClickUp Brain².',
       createdAt: 'Just now',
-      author: 'Joy Kumar Yuv',
+      author: currentUserName,
       content: `# ${title}\n\nGenerated with ClickUp Brain² on ${new Date().toLocaleDateString()}.\n\n### Metrics & Highlights\n- Sprint Velocity: 42 Story Points\n- Tasks Closed: 18 items\n- Efficiency: 94.2%`
     };
 
     const updated = [newArt, ...artifacts];
     setArtifacts(updated);
-    localStorage.setItem('clickup_artifacts', JSON.stringify(updated));
+    localStorage.setItem(artifactsStorageKey, JSON.stringify(updated));
     setIsNewArtifactModalOpen(false);
     showToast(`✓ Artifact "${newArt.title}" created successfully!`);
+  };
+
+  // Activity Action Handlers
+  const handleTriggerTestAction = () => {
+    const testActions: Partial<BrainActivityItem>[] = [
+      {
+        agentName: 'Backlog Auto-Triager',
+        actionTitle: `Auto-assigned 2 newly created tasks in ${workspaceName}`,
+        category: 'triage',
+        modelUsed: 'GPT-4o',
+        tokensUsed: 420,
+        latencyMs: 680,
+        details: 'Evaluated task urgency, set labels and assigned to primary sprint lead.',
+        triggeredBy: 'Manual Trigger'
+      },
+      {
+        agentName: 'Knowledge Vector Re-index',
+        actionTitle: 'Indexed workspace updates into Brain² vector graph',
+        category: 'sync',
+        modelUsed: 'Text-Embedding-3-Small',
+        tokensUsed: 680,
+        latencyMs: 510,
+        details: 'Updated embedding vectors for all sprint tasks and discussion threads.',
+        triggeredBy: 'Manual Trigger'
+      },
+      {
+        agentName: 'Executive Daily Summary',
+        actionTitle: 'Generated workspace progress bulletin for team',
+        category: 'general',
+        modelUsed: 'Claude 3.5 Sonnet',
+        tokensUsed: 940,
+        latencyMs: 820,
+        details: 'Compiled sprint milestone updates and delivered notification to channels.',
+        triggeredBy: 'Manual Trigger'
+      }
+    ];
+
+    const pick = testActions[Math.floor(Math.random() * testActions.length)];
+    const newAct: BrainActivityItem = {
+      id: 'act-' + Date.now(),
+      agentName: pick.agentName || 'Super Agent',
+      actionTitle: pick.actionTitle || 'Executed autonomous workspace task',
+      category: pick.category as any || 'general',
+      status: 'success',
+      modelUsed: pick.modelUsed || 'GPT-4o',
+      tokensUsed: pick.tokensUsed || 450,
+      latencyMs: pick.latencyMs || 720,
+      timestamp: 'Just now',
+      details: pick.details || 'Successfully completed execution without errors.',
+      triggeredBy: currentUserName
+    };
+
+    setActivities([newAct, ...activities]);
+    showToast(`✓ Agent action "${newAct.actionTitle}" executed successfully!`);
+  };
+
+  const handleClearActivities = () => {
+    setActivities([]);
+    showToast('Activity feed cleared');
+  };
+
+  // Connection Handlers
+  const handleSyncAllConnections = () => {
+    setIsSyncingAll(true);
+    setTimeout(() => {
+      setConnections(prev => prev.map(c => c.status === 'connected' ? { ...c, lastSync: 'Just now' } : c));
+      setIsSyncingAll(false);
+      showToast('✓ All connected services synchronized with Brain²!');
+    }, 1200);
+  };
+
+  const handleSyncSingleConnection = (connId: string) => {
+    setConnections(prev => prev.map(c => c.id === connId ? { ...c, lastSync: 'Just now' } : c));
+    showToast('✓ Service synchronized successfully!');
+  };
+
+  const handleToggleConnection = (connId: string) => {
+    setConnections(prev => prev.map(c => {
+      if (c.id === connId) {
+        const nextStatus = c.status === 'connected' ? 'available' : 'connected';
+        showToast(nextStatus === 'connected' ? `✓ ${c.name} connected!` : `Disconnected ${c.name}`);
+        return {
+          ...c,
+          status: nextStatus,
+          lastSync: nextStatus === 'connected' ? 'Just now' : 'Never'
+        };
+      }
+      return c;
+    }));
+  };
+
+  const handleAddNewConnection = () => {
+    if (!newConnName.trim()) {
+      showToast('Please enter a connection name');
+      return;
+    }
+    const newConn: BrainConnectionItem = {
+      id: 'conn-' + Date.now(),
+      name: newConnName.trim(),
+      category: 'External Data Source',
+      iconType: newConnType,
+      status: 'connected',
+      description: `Connected to ${newConnName.trim()} for knowledge indexing and AI context.`,
+      lastSync: 'Just now',
+      syncItemCount: 'Connected'
+    };
+    setConnections([newConn, ...connections]);
+    setIsAddConnectionModalOpen(false);
+    setNewConnName('');
+    setNewConnApiKey('');
+    showToast(`✓ Connection "${newConn.name}" successfully added!`);
+  };
+
+  // Skill Handlers
+  const handleToggleSkill = (skillId: string) => {
+    setSkills(prev => prev.map(s => {
+      if (s.id === skillId) {
+        const nextState = !s.enabled;
+        showToast(nextState ? `✓ Skill "${s.name}" enabled!` : `Skill "${s.name}" disabled`);
+        return { ...s, enabled: nextState };
+      }
+      return s;
+    }));
+  };
+
+  const handleCreateNewSkill = () => {
+    if (!newSkillName.trim()) {
+      showToast('Please enter a skill name');
+      return;
+    }
+    const newSkill: BrainSkillItem = {
+      id: 'skill-' + Date.now(),
+      name: newSkillName.trim(),
+      category: newSkillCat,
+      description: newSkillDesc.trim() || 'Custom autonomous skill tailored for workspace workflows.',
+      enabled: true,
+      model: selectedModel || 'GPT-4o',
+      runsCount: 0,
+      triggerType: 'On Trigger Event'
+    };
+    setSkills([newSkill, ...skills]);
+    setIsNewSkillModalOpen(false);
+    setNewSkillName('');
+    setNewSkillDesc('');
+    showToast(`✓ Custom skill "${newSkill.name}" created and deployed!`);
   };
 
   return (
@@ -961,10 +1456,14 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
                 padding: '8px 10px',
                 borderRadius: '6px',
                 backgroundColor: activeAISubtab === 'skills' ? '#ebeef2' : 'transparent',
-                color: '#475569',
+                color: activeAISubtab === 'skills' ? '#0f172a' : '#475569',
+                fontWeight: activeAISubtab === 'skills' ? 700 : 500,
                 fontSize: '0.84rem',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                transition: 'background-color 0.15s ease'
               }}
+              onMouseEnter={e => { if (activeAISubtab !== 'skills') e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+              onMouseLeave={e => { if (activeAISubtab !== 'skills') e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <Zap size={16} color="#f59e0b" />
               <span>Skills</span>
@@ -987,7 +1486,9 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
                   padding: '7px 10px',
                   borderRadius: '6px',
                   fontSize: '0.82rem',
-                  color: '#475569',
+                  color: activeAISubtab === 'agents' ? '#0f172a' : '#475569',
+                  fontWeight: activeAISubtab === 'agents' ? 700 : 500,
+                  backgroundColor: activeAISubtab === 'agents' ? '#ebeef2' : 'transparent',
                   cursor: 'pointer'
                 }}
               >
@@ -1013,25 +1514,76 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.62rem', fontWeight: 800 }}>
-                    J
+                    {userInitials[0] || 'U'}
                   </div>
                   <span>My Agents</span>
                 </div>
                 <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{myAgentsCount}</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '6px', fontSize: '0.82rem', color: '#475569', cursor: 'pointer' }}>
-                <Activity size={15} color="#64748b" />
+              <div
+                onClick={() => setActiveAISubtab('activity')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '7px 10px',
+                  borderRadius: '6px',
+                  fontSize: '0.82rem',
+                  color: activeAISubtab === 'activity' ? '#0f172a' : '#475569',
+                  fontWeight: activeAISubtab === 'activity' ? 700 : 500,
+                  backgroundColor: activeAISubtab === 'activity' ? '#ebeef2' : 'transparent',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease'
+                }}
+                onMouseEnter={e => { if (activeAISubtab !== 'activity') e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+                onMouseLeave={e => { if (activeAISubtab !== 'activity') e.currentTarget.style.backgroundColor = 'transparent'; }}
+              >
+                <Activity size={15} color={activeAISubtab === 'activity' ? '#0f172a' : '#64748b'} />
                 <span>Activity</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '6px', fontSize: '0.82rem', color: '#475569', cursor: 'pointer' }}>
-                <PieChart size={15} color="#64748b" />
+              <div
+                onClick={() => setActiveAISubtab('analytics')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '7px 10px',
+                  borderRadius: '6px',
+                  fontSize: '0.82rem',
+                  color: activeAISubtab === 'analytics' ? '#0f172a' : '#475569',
+                  fontWeight: activeAISubtab === 'analytics' ? 700 : 500,
+                  backgroundColor: activeAISubtab === 'analytics' ? '#ebeef2' : 'transparent',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease'
+                }}
+                onMouseEnter={e => { if (activeAISubtab !== 'analytics') e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+                onMouseLeave={e => { if (activeAISubtab !== 'analytics') e.currentTarget.style.backgroundColor = 'transparent'; }}
+              >
+                <PieChart size={15} color={activeAISubtab === 'analytics' ? '#0f172a' : '#64748b'} />
                 <span>Analytics</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '6px', fontSize: '0.82rem', color: '#475569', cursor: 'pointer' }}>
-                <Layers size={15} color="#64748b" />
+              <div
+                onClick={() => setActiveAISubtab('connections')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '7px 10px',
+                  borderRadius: '6px',
+                  fontSize: '0.82rem',
+                  color: activeAISubtab === 'connections' ? '#0f172a' : '#475569',
+                  fontWeight: activeAISubtab === 'connections' ? 700 : 500,
+                  backgroundColor: activeAISubtab === 'connections' ? '#ebeef2' : 'transparent',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease'
+                }}
+                onMouseEnter={e => { if (activeAISubtab !== 'connections') e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
+                onMouseLeave={e => { if (activeAISubtab !== 'connections') e.currentTarget.style.backgroundColor = 'transparent'; }}
+              >
+                <Layers size={15} color={activeAISubtab === 'connections' ? '#0f172a' : '#64748b'} />
                 <span>Connections</span>
               </div>
             </div>
@@ -1281,11 +1833,11 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
                           fontSize: '0.76rem',
                           flexShrink: 0
                         }}>
-                          JY
+                          {userInitials || 'U'}
                         </div>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                            <span style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0f172a' }}>Joy Kumar Yuv</span>
+                            <span style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0f172a' }}>{currentUserName}</span>
                             <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{msg.timestamp}</span>
                           </div>
                           <div style={{ fontSize: '0.92rem', color: '#1e293b', lineHeight: 1.5 }}>
@@ -1338,7 +1890,7 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
                                   flexDirection: 'column',
                                   gap: '4px'
                                 }}>
-                                  {(msg.stepsDetails || ["Queried Joy Kumar Yuv's Workspace active tasks & CRM pipeline", "Applied Brain² reasoning trace"]).map((step, idx) => (
+                                  {(msg.stepsDetails || [`Queried ${workspaceName} active tasks`, "Applied Brain² reasoning trace"]).map((step, idx) => (
                                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                       <span style={{ color: '#10b981' }}>✓</span>
                                       <span>{step}</span>
@@ -2202,6 +2754,717 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
             )}
           </div>
         )}
+
+        {/* =============================================================== */}
+        {/* VIEW D: ACTIVITY FEED                                           */}
+        {/* =============================================================== */}
+        {activeAISubtab === 'activity' && (
+          <div style={{ padding: '24px 32px 80px 32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e1f21', margin: '0 0 4px 0' }}>
+                  AI & Agent Activity
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+                  Live execution audit trail and autonomous actions across {workspaceName}.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={handleClearActivities}
+                  style={{
+                    padding: '7px 12px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#64748b',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Clear Feed
+                </button>
+                <button
+                  onClick={handleTriggerTestAction}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: '#1e1f21',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '7px 14px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Play size={14} />
+                  <span>Run Test Action</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Metrics Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>Total Executions</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a' }}>{activities.length}</div>
+                <div style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700, marginTop: '2px' }}>+12% vs yesterday</div>
+              </div>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>Success Rate</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#10b981' }}>99.4%</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>0 failed tasks</div>
+              </div>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>Avg Latency</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#6366f1' }}>740ms</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>Sub-second inference</div>
+              </div>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>Active Agents</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#ec4899' }}>6 Active</div>
+                <div style={{ fontSize: '0.7rem', color: '#ec4899', fontWeight: 600, marginTop: '2px' }}>Autonomous triggers</div>
+              </div>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '400px', backgroundColor: '#f8fafc', padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <Search size={15} color="#94a3b8" />
+                <input
+                  type="text"
+                  placeholder="Search execution logs or agents..."
+                  value={activitySearch}
+                  onChange={e => setActivitySearch(e.target.value)}
+                  style={{ border: 'none', background: 'none', outline: 'none', fontSize: '0.82rem', width: '100%', color: '#1e293b' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {(['all', 'success', 'running', 'warning'] as const).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setActivityFilter(f)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      fontSize: '0.76rem',
+                      fontWeight: 700,
+                      border: '1px solid',
+                      borderColor: activityFilter === f ? '#0f172a' : '#e2e8f0',
+                      backgroundColor: activityFilter === f ? '#0f172a' : '#ffffff',
+                      color: activityFilter === f ? '#ffffff' : '#475569',
+                      cursor: 'pointer',
+                      textTransform: 'capitalize'
+                    }}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Activity Table */}
+            {activities.length === 0 ? (
+              <div style={{ padding: '60px 20px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                <Activity size={36} color="#94a3b8" style={{ marginBottom: '12px' }} />
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '1rem', fontWeight: 800, color: '#1e293b' }}>No activity records found</h3>
+                <p style={{ margin: '0 0 16px 0', fontSize: '0.82rem', color: '#64748b' }}>Run a test action or trigger an autonomous agent in your workspace.</p>
+                <button onClick={handleTriggerTestAction} style={{ padding: '8px 18px', backgroundColor: '#7c3aed', color: '#ffffff', borderRadius: '8px', border: 'none', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+                  Run Test Action
+                </button>
+              </div>
+            ) : (
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#ffffff' }}>
+                {activities
+                  .filter(a => activityFilter === 'all' || a.status === activityFilter)
+                  .filter(a => !activitySearch || a.actionTitle.toLowerCase().includes(activitySearch.toLowerCase()) || a.agentName.toLowerCase().includes(activitySearch.toLowerCase()))
+                  .map((act, index) => (
+                    <div
+                      key={act.id}
+                      onClick={() => setSelectedActivityItem(act)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '14px 18px',
+                        borderBottom: index < activities.length - 1 ? '1px solid #f1f5f9' : 'none',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s ease'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = '#ffffff'}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          backgroundColor: act.category === 'triage' ? '#eff6ff' : act.category === 'sprint' ? '#fdf2f8' : act.category === 'sync' ? '#ecfdf5' : '#faf5ff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          {act.category === 'triage' ? <ListTodo size={16} color="#3b82f6" /> :
+                           act.category === 'sprint' ? <Zap size={16} color="#ec4899" /> :
+                           act.category === 'sync' ? <RefreshCw size={16} color="#10b981" /> :
+                           <Bot size={16} color="#8b5cf6" />}
+                        </div>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                            <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>{act.actionTitle}</span>
+                            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#10b981', backgroundColor: '#d1fae5', padding: '1px 6px', borderRadius: '100px' }}>
+                              200 OK
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 600, color: '#7c3aed' }}>{act.agentName}</span>
+                            <span>•</span>
+                            <span>{act.modelUsed}</span>
+                            <span>•</span>
+                            <span>{act.tokensUsed} tokens ({act.latencyMs}ms)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{act.timestamp}</span>
+                        <button
+                          onClick={e => { e.stopPropagation(); setSelectedActivityItem(act); }}
+                          style={{
+                            padding: '4px 10px',
+                            backgroundColor: '#f1f5f9',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            color: '#334155',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Inspect
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =============================================================== */}
+        {/* VIEW E: ANALYTICS                                               */}
+        {/* =============================================================== */}
+        {activeAISubtab === 'analytics' && (
+          <div style={{ padding: '24px 32px 80px 32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e1f21', margin: '0 0 4px 0' }}>
+                  Brain² Intelligence & ROI Analytics
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+                  Token consumption, model performance, and hours saved for {workspaceName}.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '3px', borderRadius: '8px' }}>
+                  {(['7d', '30d', 'all'] as const).map(t => (
+                    <button
+                      key={t}
+                      onClick={() => setAnalyticsTimeframe(t)}
+                      style={{
+                        padding: '5px 12px',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '0.76rem',
+                        fontWeight: 700,
+                        backgroundColor: analyticsTimeframe === t ? '#ffffff' : 'transparent',
+                        color: analyticsTimeframe === t ? '#0f172a' : '#64748b',
+                        boxShadow: analyticsTimeframe === t ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {t === '7d' ? 'Last 7 Days' : t === '30d' ? 'Last 30 Days' : 'All Time'}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => showToast('✓ Analytics report exported to CSV!')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 12px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Download size={14} />
+                  <span>Export</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Hero Metrics Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '24px' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>Total AI Queries</span>
+                  <Sparkles size={16} color="#7c3aed" />
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>1,428</div>
+                <div style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>↑ +24.6% vs previous period</div>
+              </div>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>Tokens Consumed</span>
+                  <Coins size={16} color="#2563eb" />
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>384.1k</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>64% prompt / 36% completion</div>
+              </div>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>Estimated Hours Saved</span>
+                  <Clock size={16} color="#10b981" />
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981', marginBottom: '4px' }}>52.5 hrs</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>≈ $2,625 team productivity value</div>
+              </div>
+
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>Response Satisfaction</span>
+                  <Award size={16} color="#f59e0b" />
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>98.9%</div>
+                <div style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700 }}>492 Thumbs Up / 5 Down</div>
+              </div>
+            </div>
+
+            {/* Daily Volume Bar Graph + Model Breakdown Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', marginBottom: '24px' }}>
+              {/* Daily Volume Bar Chart */}
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <h3 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 800, color: '#0f172a' }}>Daily AI Request Volume</h3>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Avg. 204 requests/day</span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '170px', padding: '0 10px', gap: '16px' }}>
+                  {[
+                    { day: 'Mon', count: 180, pct: 60 },
+                    { day: 'Tue', count: 245, pct: 82 },
+                    { day: 'Wed', count: 290, pct: 95 },
+                    { day: 'Thu', count: 210, pct: 70 },
+                    { day: 'Fri', count: 260, pct: 86 },
+                    { day: 'Sat', count: 120, pct: 40 },
+                    { day: 'Sun', count: 123, pct: 42 }
+                  ].map(b => (
+                    <div key={b.day} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, height: '100%', justifyContent: 'flex-end', gap: '8px' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b' }}>{b.count}</span>
+                      <div
+                        style={{
+                          width: '100%',
+                          maxWidth: '36px',
+                          height: `${b.pct}%`,
+                          backgroundColor: '#7c3aed',
+                          borderRadius: '6px 6px 2px 2px',
+                          transition: 'height 0.3s ease, background-color 0.2s',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#6d28d9'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = '#7c3aed'}
+                      />
+                      <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>{b.day}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Model Distribution Breakdown */}
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '20px' }}>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '0.96rem', fontWeight: 800, color: '#0f172a' }}>Model Distribution</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>
+                      <span style={{ color: '#0f172a' }}>OpenAI GPT-4o</span>
+                      <span style={{ color: '#7c3aed' }}>46% (176k tokens)</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: '46%', height: '100%', backgroundColor: '#7c3aed' }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>
+                      <span style={{ color: '#0f172a' }}>Google Gemini 2.0 Flash</span>
+                      <span style={{ color: '#2563eb' }}>34% (130k tokens)</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: '34%', height: '100%', backgroundColor: '#2563eb' }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: '6px' }}>
+                      <span style={{ color: '#0f172a' }}>Anthropic Claude 3.5 Sonnet</span>
+                      <span style={{ color: '#d97706' }}>20% (78k tokens)</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: '20%', height: '100%', backgroundColor: '#d97706' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Agents Leaderboard Table */}
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '20px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '0.96rem', fontWeight: 800, color: '#0f172a' }}>Top Performing Autonomous Agents</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {[
+                  { name: 'Backlog Auto-Triager', runs: 480, success: '99.6%', latency: '710ms', tag: 'Productivity' },
+                  { name: 'Sprint Burndown Forecaster', runs: 340, success: '99.1%', latency: '620ms', tag: 'Agile' },
+                  { name: 'Supabase Vector Sync', runs: 318, success: '100%', latency: '890ms', tag: 'Database' },
+                  { name: 'PR Code Quality Inspector', runs: 290, success: '98.4%', latency: '950ms', tag: 'Engineering' }
+                ].map(ag => (
+                  <div key={ag.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Bot size={16} color="#7c3aed" />
+                      <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>{ag.name}</span>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, backgroundColor: '#f1f5f9', color: '#64748b', padding: '2px 6px', borderRadius: '4px' }}>{ag.tag}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '0.78rem', color: '#64748b' }}>
+                      <span><strong>{ag.runs}</strong> executions</span>
+                      <span>Success: <strong style={{ color: '#10b981' }}>{ag.success}</strong></span>
+                      <span>Latency: <strong>{ag.latency}</strong></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =============================================================== */}
+        {/* VIEW F: CONNECTIONS                                             */}
+        {/* =============================================================== */}
+        {activeAISubtab === 'connections' && (
+          <div style={{ padding: '24px 32px 80px 32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e1f21', margin: '0 0 4px 0' }}>
+                  Connections & Integrations Hub
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+                  Link external data stores, git repositories, and communication channels into ClickUp Brain².
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={handleSyncAllConnections}
+                  disabled={isSyncingAll}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 12px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    cursor: isSyncingAll ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <RefreshCw size={14} style={{ animation: isSyncingAll ? 'spin 1s linear infinite' : 'none' }} />
+                  <span>{isSyncingAll ? 'Syncing All...' : 'Sync All Sources'}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsAddConnectionModalOpen(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: '#1e1f21',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '7px 14px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Plus size={14} />
+                  <span>Add Connection</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Pills */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              {(['all', 'connected', 'available'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setSelectedConnectionFilter(f)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '100px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    border: '1px solid',
+                    borderColor: selectedConnectionFilter === f ? '#0f172a' : '#e2e8f0',
+                    backgroundColor: selectedConnectionFilter === f ? '#0f172a' : '#ffffff',
+                    color: selectedConnectionFilter === f ? '#ffffff' : '#64748b',
+                    cursor: 'pointer',
+                    textTransform: 'capitalize'
+                  }}
+                >
+                  {f === 'all' ? `All Connections (${connections.length})` : f === 'connected' ? `Connected (${connections.filter(c => c.status === 'connected').length})` : `Available (${connections.filter(c => c.status === 'available').length})`}
+                </button>
+              ))}
+            </div>
+
+            {/* Grid of Connections */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+              {connections
+                .filter(c => selectedConnectionFilter === 'all' || c.status === selectedConnectionFilter)
+                .map(conn => (
+                  <div
+                    key={conn.id}
+                    style={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '18px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                      transition: 'border-color 0.15s ease'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {conn.iconType === 'supabase' ? <Database size={20} color="#10b981" /> :
+                             conn.iconType === 'github' ? <GitBranch size={20} color="#0f172a" /> :
+                             conn.iconType === 'slack' ? <MessageSquare size={20} color="#ec4899" /> :
+                             conn.iconType === 'gdrive' ? <GoogleCalendarAppIcon size={20} /> :
+                             conn.iconType === 'figma' ? <Layout size={20} color="#8b5cf6" /> :
+                             <Globe size={20} color="#2563eb" />}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>{conn.name}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{conn.category}</div>
+                          </div>
+                        </div>
+
+                        <span style={{
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: '100px',
+                          backgroundColor: conn.status === 'connected' ? '#ecfdf5' : '#f1f5f9',
+                          color: conn.status === 'connected' ? '#059669' : '#64748b'
+                        }}>
+                          {conn.status === 'connected' ? '● Connected' : 'Available'}
+                        </span>
+                      </div>
+
+                      <p style={{ margin: '0 0 14px 0', fontSize: '0.78rem', color: '#475569', lineHeight: 1.4 }}>
+                        {conn.description}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
+                      <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                        {conn.status === 'connected' ? `Synced: ${conn.lastSync}` : 'Ready to connect'}
+                      </span>
+
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {conn.status === 'connected' ? (
+                          <>
+                            <button
+                              onClick={() => handleSyncSingleConnection(conn.id)}
+                              style={{ padding: '5px 10px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}
+                            >
+                              Sync Now
+                            </button>
+                            <button
+                              onClick={() => handleToggleConnection(conn.id)}
+                              style={{ padding: '5px 10px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 600, color: '#ef4444', cursor: 'pointer' }}
+                            >
+                              Disconnect
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleConnection(conn.id)}
+                            style={{ padding: '6px 14px', backgroundColor: '#7c3aed', border: 'none', borderRadius: '6px', fontSize: '0.76rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}
+                          >
+                            Connect
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* =============================================================== */}
+        {/* VIEW G: SKILLS DIRECTORY                                        */}
+        {/* =============================================================== */}
+        {activeAISubtab === 'skills' && (
+          <div style={{ padding: '24px 32px 80px 32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e1f21', margin: '0 0 4px 0' }}>
+                  ClickUp Brain AI Skills
+                </h2>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+                  Autonomous triggers and pre-built intelligence automations for {workspaceName}.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsNewSkillModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: '#1e1f21',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '7px 14px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                <Plus size={14} />
+                <span>Create Custom Skill</span>
+              </button>
+            </div>
+
+            {/* Category Tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              {['All', 'Productivity', 'Team Workflow', 'Engineering', 'Sales & CRM', 'Agile'].map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSkillsFilter(cat)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '100px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    border: '1px solid',
+                    borderColor: skillsFilter === cat ? '#0f172a' : '#e2e8f0',
+                    backgroundColor: skillsFilter === cat ? '#0f172a' : '#ffffff',
+                    color: skillsFilter === cat ? '#ffffff' : '#64748b',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Grid of Skills */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
+              {skills
+                .filter(s => skillsFilter === 'All' || s.category === skillsFilter)
+                .map(skill => (
+                  <div
+                    key={skill.id}
+                    style={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '18px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                      transition: 'border-color 0.15s ease'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Zap size={16} color="#d97706" />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>{skill.name}</div>
+                            <span style={{ fontSize: '0.7rem', color: '#7c3aed', fontWeight: 600 }}>{skill.category}</span>
+                          </div>
+                        </div>
+
+                        {/* Toggle Switch */}
+                        <div
+                          onClick={() => handleToggleSkill(skill.id)}
+                          style={{
+                            width: '40px',
+                            height: '22px',
+                            borderRadius: '100px',
+                            backgroundColor: skill.enabled ? '#7c3aed' : '#cbd5e1',
+                            padding: '2px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            transition: 'background-color 0.2s ease',
+                            justifyContent: skill.enabled ? 'flex-end' : 'flex-start'
+                          }}
+                        >
+                          <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                        </div>
+                      </div>
+
+                      <p style={{ margin: '0 0 14px 0', fontSize: '0.78rem', color: '#475569', lineHeight: 1.4 }}>
+                        {skill.description}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid #f1f5f9', fontSize: '0.72rem', color: '#64748b' }}>
+                      <span style={{ backgroundColor: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                        Trigger: {skill.triggerType}
+                      </span>
+                      <span><strong>{skill.runsCount}</strong> runs</span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* =================================================================== */}
@@ -2519,7 +3782,205 @@ I have analyzed your query against all active docs, CRM boards, and calendar eve
               <h3 style={{ margin: 0, fontWeight: 800 }}>Brain² Memory</h3>
               <button onClick={() => setIsMemoryModalOpen(false)} style={{ border: 'none', background: 'none' }}><X size={16} /></button>
             </div>
-            <p style={{ fontSize: '0.82rem', color: '#64748b' }}>Workspace knowledge base active for Joy Kumar Yuv.</p>
+            <p style={{ fontSize: '0.82rem', color: '#64748b' }}>Workspace knowledge base active for {currentUserName}.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Activity Details Modal */}
+      {selectedActivityItem && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
+          <div style={{ width: '560px', backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Activity size={20} color="#7c3aed" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Execution Details</h3>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Event ID: {selectedActivityItem.id}</span>
+                </div>
+              </div>
+              <button onClick={() => setSelectedActivityItem(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Action & Agent</div>
+                <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a', marginBottom: '2px' }}>{selectedActivityItem.actionTitle}</div>
+                <div style={{ fontSize: '0.78rem', color: '#7c3aed', fontWeight: 600 }}>Executed by: {selectedActivityItem.agentName}</div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                <div style={{ padding: '10px', backgroundColor: '#faf5ff', borderRadius: '8px', border: '1px solid #f3e8ff' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#7c3aed', fontWeight: 700, display: 'block' }}>Model Used</span>
+                  <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#581c87' }}>{selectedActivityItem.modelUsed}</span>
+                </div>
+                <div style={{ padding: '10px', backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #dbeafe' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#2563eb', fontWeight: 700, display: 'block' }}>Tokens</span>
+                  <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#1e3a8a' }}>{selectedActivityItem.tokensUsed} tokens</span>
+                </div>
+                <div style={{ padding: '10px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 700, display: 'block' }}>Latency</span>
+                  <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#064e3b' }}>{selectedActivityItem.latencyMs}ms</span>
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Execution Trace & Outcome</span>
+                <p style={{ margin: 0, fontSize: '0.84rem', color: '#334155', lineHeight: 1.5, padding: '10px', backgroundColor: '#f1f5f9', borderRadius: '8px', fontFamily: 'monospace' }}>
+                  {selectedActivityItem.details}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                <button onClick={() => setSelectedActivityItem(null)} style={{ padding: '8px 18px', backgroundColor: '#0f172a', color: '#ffffff', borderRadius: '8px', border: 'none', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+                  Close Inspector
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Connection Modal */}
+      {isAddConnectionModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
+          <div style={{ width: '480px', backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Layers size={20} color="#7c3aed" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Connect External Source</h3>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Index knowledge into Brain² memory</span>
+                </div>
+              </div>
+              <button onClick={() => setIsAddConnectionModalOpen(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Service Type</label>
+                <select
+                  value={newConnType}
+                  onChange={e => setNewConnType(e.target.value as any)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                >
+                  <option value="gdrive">Google Drive & Docs</option>
+                  <option value="figma">Figma Design System</option>
+                  <option value="webhook">Custom REST Webhook</option>
+                  <option value="github">GitHub Organization</option>
+                  <option value="slack">Slack Workspace</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Integration Label / Workspace Name</label>
+                <input
+                  type="text"
+                  value={newConnName}
+                  onChange={e => setNewConnName(e.target.value)}
+                  placeholder="e.g. Acme Google Drive or Core Figma"
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>API Token / Access Key (Optional)</label>
+                <input
+                  type="password"
+                  value={newConnApiKey}
+                  onChange={e => setNewConnApiKey(e.target.value)}
+                  placeholder="OAuth token or webhook secret"
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button onClick={() => setIsAddConnectionModalOpen(false)} style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600, color: '#475569', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button onClick={handleAddNewConnection} style={{ padding: '8px 20px', backgroundColor: '#7c3aed', color: '#ffffff', borderRadius: '8px', border: 'none', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+                  Connect Service
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Skill Modal */}
+      {isNewSkillModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)' }}>
+          <div style={{ width: '500px', backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Zap size={20} color="#d97706" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Create Custom AI Skill</h3>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Automate repetitive task workflows</span>
+                </div>
+              </div>
+              <button onClick={() => setIsNewSkillModalOpen(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Skill Name</label>
+                <input
+                  type="text"
+                  value={newSkillName}
+                  onChange={e => setNewSkillName(e.target.value)}
+                  placeholder="e.g. Inbound Ticket Severity Classifier"
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Category</label>
+                <select
+                  value={newSkillCat}
+                  onChange={e => setNewSkillCat(e.target.value)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                >
+                  <option value="Productivity">Productivity</option>
+                  <option value="Team Workflow">Team Workflow</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Sales & CRM">Sales & CRM</option>
+                  <option value="Agile">Agile</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Skill Instructions & Logic</label>
+                <textarea
+                  rows={3}
+                  value={newSkillDesc}
+                  onChange={e => setNewSkillDesc(e.target.value)}
+                  placeholder="Explain what the AI should do when this skill triggers (e.g. classify urgency, summarize changes, or assign tags)..."
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button onClick={() => setIsNewSkillModalOpen(false)} style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600, color: '#475569', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button onClick={handleCreateNewSkill} style={{ padding: '8px 20px', backgroundColor: '#7c3aed', color: '#ffffff', borderRadius: '8px', border: 'none', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+                  Deploy Skill
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

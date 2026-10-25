@@ -30,6 +30,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { TaskItem } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 export interface TimeEntryItem {
   id: string;
@@ -113,12 +114,18 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
     }
   });
 
+  const { user } = useAuth();
+  const isDemoUser = user?.id === 'u_joy_1';
+  const currentUserName = user?.name || 'You';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+
   const tourStep = propTourStep !== undefined ? propTourStep : internalTourStep;
 
   // Time Entries State
   const [entries, setEntries] = useState<TimeEntryItem[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_time_entries_v1');
+      const storageKey = isDemoUser ? 'clickup_time_entries_v1' : `clickup_time_entries_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [];
@@ -127,7 +134,8 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
   // Active Timesheet Task Rows (for Timesheet Grid)
   const [timesheetTaskIds, setTimesheetTaskIds] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_timesheet_tasks_v1');
+      const storageKey = isDemoUser ? 'clickup_timesheet_tasks_v1' : `clickup_timesheet_tasks_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [];
@@ -136,46 +144,49 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
   // Team Members for "All timesheets" (Screenshot 1: /time/team)
   const [teamTimesheets, setTeamTimesheets] = useState<TeamMemberTimesheet[]>([
     {
-      id: 'mem-joy',
-      name: 'Joy Kumar Yuv',
-      initials: 'JY',
+      id: 'mem-user',
+      name: currentUserName,
+      initials: userInitials,
       capacityHours: 40,
       dailyHours: [0, 0, 0, 0, 0, 0, 0]
     },
-    {
-      id: 'mem-alex',
-      name: 'Alex Rivera',
-      initials: 'AR',
-      capacityHours: 40,
-      dailyHours: [0, 8, 8, 7.5, 8, 8, 0]
-    },
-    {
-      id: 'mem-sarah',
-      name: 'Sarah Chen',
-      initials: 'SC',
-      capacityHours: 40,
-      dailyHours: [0, 8, 8, 8, 8, 8, 0]
-    },
-    {
-      id: 'mem-emma',
-      name: 'Emma Davis',
-      initials: 'ED',
-      capacityHours: 40,
-      dailyHours: [0, 7, 8, 8, 8, 7, 0]
-    }
+    ...(isDemoUser ? [
+      {
+        id: 'mem-alex',
+        name: 'Alex Rivera',
+        initials: 'AR',
+        capacityHours: 40,
+        dailyHours: [0, 8, 8, 7.5, 8, 8, 0]
+      },
+      {
+        id: 'mem-sarah',
+        name: 'Sarah Chen',
+        initials: 'SC',
+        capacityHours: 40,
+        dailyHours: [0, 8, 8, 8, 8, 8, 0]
+      },
+      {
+        id: 'mem-emma',
+        name: 'Emma Davis',
+        initials: 'ED',
+        capacityHours: 40,
+        dailyHours: [0, 7, 8, 8, 8, 7, 0]
+      }
+    ] : [])
   ]);
 
   // Approvals State (Screenshot 2: /time/approvals)
   const [approvalsList, setApprovalsList] = useState<TimesheetApprovalSubmission[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_approvals_submissions_v1');
+      const storageKey = isDemoUser ? 'clickup_approvals_submissions_v1' : `clickup_approvals_submissions_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [];
   });
 
   const [isSetupApprovalsModalOpen, setIsSetupApprovalsModalOpen] = useState(false);
-  const [approvalApprover, setApprovalApprover] = useState('Joy Kumar Yuv (Workspace Owner)');
+  const [approvalApprover, setApprovalApprover] = useState(`${currentUserName} (Workspace Owner)`);
   const [approvalDeadline, setApprovalDeadline] = useState('Every Friday at 5:00 PM');
   const [autoApproveEnabled, setAutoApproveEnabled] = useState(true);
 
@@ -231,12 +242,12 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
     });
 
     setTeamTimesheets(prev => prev.map(m => {
-      if (m.name === 'Joy Kumar Yuv') {
+      if (m.name === currentUserName || m.name === 'Joy Kumar Yuv' || m.id === 'mem-user') {
         return { ...m, dailyHours: joyDaily };
       }
       return m;
     }));
-  }, [entries]);
+  }, [entries, currentUserName]);
 
   // Stopwatch interval
   useEffect(() => {
@@ -369,7 +380,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
       notes: modalNotes.trim(),
       tags: modalTags,
       billable: modalBillable,
-      user: 'Joy Kumar Yuv'
+      user: currentUserName
     };
 
     setEntries([newEntry, ...entries]);
@@ -408,7 +419,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
         notes: 'Logged via Timesheet grid',
         tags: ['Development'],
         billable: true,
-        user: 'Joy Kumar Yuv'
+        user: currentUserName
       };
       setEntries([newE, ...otherEntries]);
     } else {
@@ -428,8 +439,8 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
 
     const newSub: TimesheetApprovalSubmission = {
       id: 'sub-' + Date.now(),
-      userName: 'Joy Kumar Yuv',
-      userInitials: 'JY',
+      userName: currentUserName,
+      userInitials: userInitials,
       userAvatarBg: '#0f172a',
       userRole: 'Founder & Workspace Owner',
       weekRange: 'Oct 25 - Oct 31',
@@ -893,7 +904,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                     zIndex: 60,
                     padding: '4px'
                   }}>
-                    {['All members', 'Joy Kumar Yuv', 'Alex Rivera', 'Sarah Chen', 'Emma Davis'].map(m => (
+                    {['All members', currentUserName, ...(isDemoUser ? ['Alex Rivera', 'Sarah Chen', 'Emma Davis'] : [])].map(m => (
                       <div
                         key={m}
                         onClick={() => {
@@ -2077,10 +2088,10 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  J
+                  {userInitials[0] || 'U'}
                 </div>
                 <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
-                  Joy Kumar Yuv
+                  {currentUserName}
                 </span>
               </div>
 
@@ -2385,9 +2396,13 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                     outline: 'none'
                   }}
                 >
-                  <option value="Joy Kumar Yuv (Workspace Owner)">Joy Kumar Yuv (Workspace Owner)</option>
-                  <option value="Alex Rivera (Engineering Lead)">Alex Rivera (Engineering Lead)</option>
-                  <option value="Sarah Chen (Product Lead)">Sarah Chen (Product Lead)</option>
+                  <option value={`${currentUserName} (Workspace Owner)`}>{currentUserName} (Workspace Owner)</option>
+                  {isDemoUser && (
+                    <>
+                      <option value="Alex Rivera (Engineering Lead)">Alex Rivera (Engineering Lead)</option>
+                      <option value="Sarah Chen (Product Lead)">Sarah Chen (Product Lead)</option>
+                    </>
+                  )}
                 </select>
               </div>
 

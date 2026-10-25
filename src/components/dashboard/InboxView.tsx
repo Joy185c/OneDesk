@@ -18,6 +18,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { TaskItem } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 interface InboxNotification {
   id: string;
@@ -112,20 +113,27 @@ export const InboxView: React.FC<InboxViewProps> = ({
   onNavigateToTab,
   onOpenInvite 
 }) => {
+  const { user } = useAuth();
+  const isDemoUser = user?.id === 'u_joy_1';
+  const currentUserName = user?.name || 'You';
+
   const [activeTab, setActiveTab] = useState<'primary' | 'other' | 'later' | 'cleared'>('primary');
   const [notifications, setNotifications] = useState<InboxNotification[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_inbox_notifs_v1');
+      const storageKey = isDemoUser ? 'clickup_inbox_notifs_v1' : `clickup_inbox_notifs_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
+      return isDemoUser ? INITIAL_NOTIFICATIONS : [];
     } catch {}
-    return INITIAL_NOTIFICATIONS;
+    return isDemoUser ? INITIAL_NOTIFICATIONS : [];
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_inbox_notifs_v1', JSON.stringify(notifications));
+      const storageKey = isDemoUser ? 'clickup_inbox_notifs_v1' : `clickup_inbox_notifs_${user?.id || 'guest'}`;
+      localStorage.setItem(storageKey, JSON.stringify(notifications));
     } catch {}
-  }, [notifications]);
+  }, [notifications, user?.id, isDemoUser]);
   const [showNotificationList, setShowNotificationList] = useState<boolean>(false);
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'mentions'>('all');
@@ -161,7 +169,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
       return {
         ...n,
         isRead: true,
-        replies: [...existing, { sender: 'Joy Kumar Yuv (You)', text: text.trim(), time: 'Just now' }]
+        replies: [...existing, { sender: `${currentUserName} (You)`, text: text.trim(), time: 'Just now' }]
       };
     }));
 

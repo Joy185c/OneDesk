@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Crown
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   currentPlan = 'Free', 
   onPlanUpgraded 
 }) => {
+  const { user } = useAuth();
+  const workspaceName = user?.workspaceName || (user?.name ? `${user.name}'s Workspace` : 'My Workspace');
   const [billingCycle, setBillingCycle] = useState<'yearly' | 'monthly'>('yearly');
   const [selectedPlan, setSelectedPlan] = useState<string>('Business');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -153,7 +156,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
             marginBottom: '12px'
           }}>
             <Rocket size={14} />
-            <span>Upgrade Joy Kumar Yuv's Workspace</span>
+            <span>Upgrade {workspaceName}</span>
           </div>
 
           <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>

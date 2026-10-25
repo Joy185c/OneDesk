@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Plus, 
   Trash2, 
@@ -163,7 +164,7 @@ const generateInitialItemsForTemplate = (type: string): WhiteboardCanvasItem[] =
           x: 480,
           y: 70,
           width: 240,
-          title: 'Joy Kumar Yuv',
+          title: 'Workspace Owner',
           role: 'Founder & CEO',
           text: 'Executive Leadership & Product Strategy',
           color: '#f5f3ff',
@@ -305,7 +306,7 @@ const generateInitialItemsForTemplate = (type: string): WhiteboardCanvasItem[] =
           type: 'sticky',
           x: 520,
           y: 370,
-          text: '🚀 Joy Kumar Yuv to review production deployment and verify responsive UI.',
+          text: '🚀 Team to review production deployment and verify responsive UI.',
           color: '#bbf7d0',
           tag: 'Review'
         }
@@ -547,10 +548,13 @@ const generateInitialItemsForTemplate = (type: string): WhiteboardCanvasItem[] =
 };
 
 export const WhiteboardView: React.FC = () => {
+  const { user } = useAuth();
+  const storageKey = `clickup_saved_whiteboards_${user?.id || 'guest'}`;
+
   // Persistence state
   const [whiteboards, setWhiteboards] = useState<WhiteboardData[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_saved_whiteboards_v1');
+      const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [];
@@ -583,9 +587,9 @@ export const WhiteboardView: React.FC = () => {
   // Sync to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_saved_whiteboards_v1', JSON.stringify(whiteboards));
+      localStorage.setItem(storageKey, JSON.stringify(whiteboards));
     } catch (e) {}
-  }, [whiteboards]);
+  }, [whiteboards, storageKey]);
 
   // Open or Create Template
   const handleSelectTemplate = (templateId: string, templateTitle: string) => {

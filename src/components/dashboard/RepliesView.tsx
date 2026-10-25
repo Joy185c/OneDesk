@@ -10,6 +10,7 @@ import {
   Folder 
 } from 'lucide-react';
 import { TaskItem } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 interface ReplyThread {
   id: string;
@@ -115,19 +116,27 @@ const INITIAL_THREADS: ReplyThread[] = [
 ];
 
 export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) => {
+  const { user } = useAuth();
+  const isDemoUser = user?.id === 'u_joy_1';
+  const currentUserName = user?.name || 'You';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+
   const [threads, setThreads] = useState<ReplyThread[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_replies_v1');
+      const storageKey = isDemoUser ? 'clickup_replies_v1' : `clickup_replies_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
+      return isDemoUser ? INITIAL_THREADS : [];
     } catch {}
-    return INITIAL_THREADS;
+    return isDemoUser ? INITIAL_THREADS : [];
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_replies_v1', JSON.stringify(threads));
+      const storageKey = isDemoUser ? 'clickup_replies_v1' : `clickup_replies_${user?.id || 'guest'}`;
+      localStorage.setItem(storageKey, JSON.stringify(threads));
     } catch {}
-  }, [threads]);
+  }, [threads, user?.id, isDemoUser]);
   const [activeFilter, setActiveFilter] = useState<'open' | 'resolved'>('open');
   const [replyInputMap, setReplyInputMap] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,8 +164,8 @@ export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) =
           ...th.messages,
           {
             id: `m-${Date.now()}`,
-            author: 'Joy Kumar Yuv (You)',
-            avatar: 'JY',
+            author: `${currentUserName} (You)`,
+            avatar: userInitials,
             content: text.trim(),
             timestamp: 'Just now',
             isCurrentUser: true
@@ -208,7 +217,7 @@ export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) =
               Replies & Mentions
             </h1>
             <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>
-              All discussion threads and conversation replies involving Joy Kumar Yuv.
+              All discussion threads and conversation replies involving {currentUserName}.
             </p>
           </div>
         </div>

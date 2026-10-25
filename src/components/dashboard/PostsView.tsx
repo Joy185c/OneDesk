@@ -12,6 +12,7 @@ import {
   Sparkles,
   X 
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface PostItem {
   id: string;
@@ -73,19 +74,44 @@ const INITIAL_POSTS: PostItem[] = [
 ];
 
 export const PostsView: React.FC = () => {
+  const { user } = useAuth();
+  const isDemoUser = user?.id === 'u_joy_1';
+  const currentUserName = user?.name || 'Workspace Owner';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'WO';
+  const workspaceName = user?.workspaceName || 'My Team Workspace';
+
+  const defaultNewUserPosts: PostItem[] = [
+    {
+      id: 'p-welcome',
+      author: currentUserName,
+      authorRole: 'Workspace Owner',
+      avatar: userInitials,
+      title: `🎉 Welcome to ${workspaceName}!`,
+      badge: 'Announcement',
+      content: 'Your centralized workspace is live. You can share company updates, celebrate milestones, and collaborate with your team right here.',
+      timestamp: 'Just now',
+      reactions: { thumbsUp: 1, heart: 1, rocket: 1, party: 1 },
+      userReactions: { rocket: true },
+      comments: []
+    }
+  ];
+
   const [posts, setPosts] = useState<PostItem[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_posts_v1');
+      const storageKey = isDemoUser ? 'clickup_posts_v1' : `clickup_posts_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
+      return isDemoUser ? INITIAL_POSTS : defaultNewUserPosts;
     } catch {}
-    return INITIAL_POSTS;
+    return isDemoUser ? INITIAL_POSTS : defaultNewUserPosts;
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_posts_v1', JSON.stringify(posts));
+      const storageKey = isDemoUser ? 'clickup_posts_v1' : `clickup_posts_${user?.id || 'guest'}`;
+      localStorage.setItem(storageKey, JSON.stringify(posts));
     } catch {}
-  }, [posts]);
+  }, [posts, user?.id, isDemoUser]);
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
@@ -140,9 +166,9 @@ export const PostsView: React.FC = () => {
 
     const newPost: PostItem = {
       id: `p-${Date.now()}`,
-      author: 'Joy Kumar Yuv',
+      author: currentUserName,
       authorRole: 'Workspace Owner',
-      avatar: 'JY',
+      avatar: userInitials,
       title: newTitle.trim(),
       badge: newBadge,
       content: newContent.trim(),

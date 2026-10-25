@@ -10,6 +10,7 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { TaskItem } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 interface AssignedCommentItem {
   id: string;
@@ -81,19 +82,25 @@ const INITIAL_ASSIGNED_COMMENTS: AssignedCommentItem[] = [
 ];
 
 export const AssignedCommentsView: React.FC<AssignedCommentsViewProps> = ({ tasks, onOpenTask }) => {
+  const { user } = useAuth();
+  const isDemoUser = user?.id === 'u_joy_1';
+
   const [comments, setComments] = useState<AssignedCommentItem[]>(() => {
     try {
-      const saved = localStorage.getItem('clickup_assigned_comments_v1');
+      const storageKey = isDemoUser ? 'clickup_assigned_comments_v1' : `clickup_assigned_comments_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
+      return isDemoUser ? INITIAL_ASSIGNED_COMMENTS : [];
     } catch {}
-    return INITIAL_ASSIGNED_COMMENTS;
+    return isDemoUser ? INITIAL_ASSIGNED_COMMENTS : [];
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_assigned_comments_v1', JSON.stringify(comments));
+      const storageKey = isDemoUser ? 'clickup_assigned_comments_v1' : `clickup_assigned_comments_${user?.id || 'guest'}`;
+      localStorage.setItem(storageKey, JSON.stringify(comments));
     } catch {}
-  }, [comments]);
+  }, [comments, user?.id, isDemoUser]);
   const [filter, setFilter] = useState<'unresolved' | 'resolved'>('unresolved');
   const [searchQuery, setSearchQuery] = useState('');
 

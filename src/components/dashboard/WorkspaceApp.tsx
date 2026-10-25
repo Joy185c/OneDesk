@@ -306,8 +306,13 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
     return typeof window !== 'undefined' && window.location.pathname.startsWith('/apps');
   });
 
+  const isDemoUser = user?.id === 'u_joy_1';
+  const currentUserName = user?.name || 'You';
+  const workspaceName = user?.workspaceName || (user?.name ? `${user.name}'s Workspace` : 'My Workspace');
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+
   const [activeChannel, setActiveChannel] = useState<string>('general');
-  const [activeDmUser, setActiveDmUser] = useState({ name: 'Joy Kumar Yuv — You', initials: 'JY' });
+  const [activeDmUser, setActiveDmUser] = useState({ name: `${currentUserName} — You`, initials: userInitials });
   const [currentSpaceName, setCurrentSpaceName] = useState('Space');
 
   // Dynamic Sidebar Elements
@@ -316,12 +321,12 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
   ]);
 
   const [channels, setChannels] = useState<Array<{ id: string; name: string; isGeneral?: boolean }>>([
-    { id: 'general', name: "General - Joy Kumar Yuv's Work...", isGeneral: true },
+    { id: 'general', name: `General - ${workspaceName}`, isGeneral: true },
     { id: 'welcome', name: 'Welcome', isGeneral: false }
   ]);
 
   const [directMessages, setDirectMessages] = useState<Array<{ id: string; name: string; initials: string }>>([
-    { id: 'joy-you', name: 'Joy Kumar Yuv — You', initials: 'JY' }
+    { id: user?.id || 'me', name: `${currentUserName} — You`, initials: userInitials }
   ]);
 
   const [spacesList, setSpacesList] = useState<Array<{ id: string; name: string; folder: string; color: string; initial: string }>>([
@@ -364,12 +369,21 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
 
   const [tasks, setTasks] = useState<TaskItem[]>(() => {
     try {
-      const stored = localStorage.getItem('clickjoy_saved_tasks');
-      return stored ? JSON.parse(stored) : INITIAL_TASKS;
+      const storageKey = isDemoUser ? 'clickjoy_saved_tasks' : `clickjoy_saved_tasks_${user?.id || 'guest'}`;
+      const stored = localStorage.getItem(storageKey);
+      if (stored) return JSON.parse(stored);
+      return isDemoUser ? INITIAL_TASKS : [];
     } catch {
-      return INITIAL_TASKS;
+      return isDemoUser ? INITIAL_TASKS : [];
     }
   });
+
+  useEffect(() => {
+    try {
+      const storageKey = isDemoUser ? 'clickjoy_saved_tasks' : `clickjoy_saved_tasks_${user?.id || 'guest'}`;
+      localStorage.setItem(storageKey, JSON.stringify(tasks));
+    } catch {}
+  }, [tasks, user?.id, isDemoUser]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
@@ -472,8 +486,6 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
     t.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const workspaceName = user?.workspaceName || "Joy Kumar Yuv's Workspace";
-  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'JY';
 
   return (
     <div style={{
@@ -762,9 +774,9 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 border: '1.5px solid #e2e8f0',
                 transition: 'transform 0.1s'
               }}
-              title="Joy Kumar Yuv (Click to open profile & personal tools)"
+              title={`${currentUserName} (Click to open profile & personal tools)`}
             >
-              JY
+              {userInitials}
               {/* Online Green Indicator Dot */}
               <span style={{
                 position: 'absolute',
@@ -783,8 +795,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               isOpen={profileDropdownOpen}
               onClose={() => setProfileDropdownOpen(false)}
               user={{
-                name: user?.name || 'Joy Kumar Yuv',
-                email: user?.email || 'joy185c@gmail.com',
+                name: currentUserName,
+                email: user?.email || 'user@clickup.com',
                 initials: userInitials
               }}
               tasks={tasks}
@@ -1589,34 +1601,38 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px', padding: '0 4px' }}>
                 AI Chats
               </div>
-              <div style={{ fontSize: '0.68rem', color: '#94a3b8', padding: '2px 6px', fontWeight: 600 }}>
-                Yesterday
-              </div>
-              <div 
-                onClick={() => {
-                  setActiveChannel('sales-crm');
-                  setActiveTab('ai');
-                  showToast('Opened Sales & CRM Setup with ClickUp Brain');
-                }}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  padding: '4px 6px', 
-                  fontSize: '0.76rem', 
-                  color: '#334155', 
-                  cursor: 'pointer',
-                  borderRadius: '6px'
-                }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
-                  <MessageSquare size={13} color="#64748b" />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Sales & CRM Setup</span>
-                </div>
-                <span style={{ fontSize: '0.66rem', color: '#94a3b8', flexShrink: 0 }}>2 hours ago</span>
-              </div>
+              {isDemoUser && (
+                <>
+                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', padding: '2px 6px', fontWeight: 600 }}>
+                    Yesterday
+                  </div>
+                  <div 
+                    onClick={() => {
+                      setActiveChannel('sales-crm');
+                      setActiveTab('ai');
+                      showToast('Opened Sales & CRM Setup with ClickUp Brain');
+                    }}
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      padding: '4px 6px', 
+                      fontSize: '0.76rem', 
+                      color: '#334155', 
+                      cursor: 'pointer',
+                      borderRadius: '6px'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                      <MessageSquare size={13} color="#64748b" />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Sales & CRM Setup</span>
+                    </div>
+                    <span style={{ fontSize: '0.66rem', color: '#94a3b8', flexShrink: 0 }}>2 hours ago</span>
+                  </div>
+                </>
+              )}
               <div 
                 onClick={() => {
                   setActiveTab('ai');
@@ -1712,11 +1728,11 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                     justifyContent: 'center',
                     lineHeight: 1
                   }}>
-                    J
+                    {userInitials[0] || 'W'}
                   </span>
                 </div>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  General - Joy Kumar Yuv's Work...
+                  General - {workspaceName}
                 </span>
               </div>
 
@@ -1793,10 +1809,10 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 Direct Messages
               </div>
 
-              {/* Joy Kumar Yuv — You with Online Green Dot */}
+              {/* Current User with Online Green Dot */}
               <div 
                 onClick={() => {
-                  setActiveDmUser({ name: 'Joy Kumar Yuv — You', initials: 'JY' });
+                  setActiveDmUser({ name: `${currentUserName} — You`, initials: userInitials });
                   setActiveTab('dm');
                 }}
                 style={{ 
@@ -1808,22 +1824,22 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   color: '#334155', 
                   cursor: 'pointer',
                   borderRadius: '6px',
-                  backgroundColor: activeTab === 'dm' && activeDmUser.name.includes('Joy') ? '#f1f5f9' : 'transparent'
+                  backgroundColor: activeTab === 'dm' && activeDmUser.name.includes(currentUserName) ? '#f1f5f9' : 'transparent'
                 }}
-                onMouseEnter={e => { if (activeTab !== 'dm' || !activeDmUser.name.includes('Joy')) e.currentTarget.style.backgroundColor = '#f8fafc'; }}
-                onMouseLeave={e => { if (activeTab !== 'dm' || !activeDmUser.name.includes('Joy')) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                onMouseEnter={e => { if (activeTab !== 'dm' || !activeDmUser.name.includes(currentUserName)) e.currentTarget.style.backgroundColor = '#f8fafc'; }}
+                onMouseLeave={e => { if (activeTab !== 'dm' || !activeDmUser.name.includes(currentUserName)) e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
                 <div style={{ position: 'relative', width: '18px', height: '18px', flexShrink: 0 }}>
                   <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#1e293b', color: '#14b8a6', fontSize: '0.66rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                    J
+                    {userInitials[0] || 'U'}
                   </div>
                   <div style={{ position: 'absolute', bottom: '-1px', right: '-1px', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e', border: '1px solid #ffffff' }} />
                 </div>
-                <span>Joy Kumar Yuv — You</span>
+                <span>{currentUserName} — You</span>
               </div>
 
               {/* Additional DMs if any */}
-              {directMessages.filter(dm => !dm.name.includes('Joy')).map(dm => {
+              {directMessages.filter(dm => !dm.name.includes(currentUserName)).map(dm => {
                 const isActive = activeTab === 'dm' && activeDmUser.name === dm.name;
                 return (
                   <div 
@@ -1933,7 +1949,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   </svg>
                 </div>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  All Tasks - Joy Kumar Yuv's Wor...
+                  All Tasks - {workspaceName}
                 </span>
               </div>
 
