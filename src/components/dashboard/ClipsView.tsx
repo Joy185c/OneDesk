@@ -24,6 +24,8 @@ import {
   MessageSquare
 } from 'lucide-react';
 
+import { useAuth } from '../../context/AuthContext';
+
 export interface ClipItem {
   id: string;
   title: string;
@@ -46,8 +48,8 @@ const DEFAULT_CLIPS: ClipItem[] = [
     type: 'video',
     durationSeconds: 142,
     createdAt: 'Today at 10:45 AM',
-    author: 'Joy Kumar Yuv',
-    authorInitials: 'JY',
+    author: 'Alex Rivera',
+    authorInitials: 'AR',
     views: 12,
     commentsCount: 3,
     thumbnailGradient: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
@@ -60,8 +62,8 @@ const DEFAULT_CLIPS: ClipItem[] = [
     type: 'voice',
     durationSeconds: 68,
     createdAt: 'Yesterday at 5:12 PM',
-    author: 'Joy Kumar Yuv',
-    authorInitials: 'JY',
+    author: 'Sarah Chang',
+    authorInitials: 'SC',
     views: 8,
     commentsCount: 1,
     thumbnailGradient: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
@@ -71,6 +73,10 @@ const DEFAULT_CLIPS: ClipItem[] = [
 ];
 
 export const ClipsView: React.FC = () => {
+  const { user } = useAuth();
+  const currentUserName = user?.name || 'You';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+
   const [activeSubTab, setActiveSubTab] = useState<'all' | 'video' | 'voice' | 'syncups' | 'ai'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [clips, setClips] = useState<ClipItem[]>(() => {
@@ -171,8 +177,8 @@ export const ClipsView: React.FC = () => {
       type: recordMode === 'voice' ? 'voice' : 'video',
       durationSeconds: dur,
       createdAt: 'Just now',
-      author: 'Joy Kumar Yuv',
-      authorInitials: 'JY',
+      author: currentUserName,
+      authorInitials: userInitials,
       views: 1,
       commentsCount: 0,
       thumbnailGradient: recordMode === 'voice' 

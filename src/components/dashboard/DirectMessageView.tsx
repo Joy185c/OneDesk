@@ -10,6 +10,7 @@ import {
   Search, 
   Bot 
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface DmMessage {
   id: string;
@@ -25,56 +26,55 @@ interface DirectMessageViewProps {
   recipientInitials?: string;
 }
 
-const INITIAL_MESSAGES: DmMessage[] = [
-  {
-    id: 'dm-1',
-    sender: 'Joy Kumar Yuv (You)',
-    avatar: 'JY',
-    text: '💡 Personal Scratchpad: Need to follow up with Acme Corp regarding custom SLA addendum on Monday morning.',
-    timestamp: 'Today at 8:45 AM',
-    isNote: true
-  },
-  {
-    id: 'dm-2',
-    sender: 'Joy Kumar Yuv (You)',
-    avatar: 'JY',
-    text: 'Reminder: Check Supabase websocket connection latency after the latest migration.',
-    timestamp: 'Today at 9:12 AM',
-    isNote: true
-  },
-  {
-    id: 'dm-3',
-    sender: 'Joy Kumar Yuv (You)',
-    avatar: 'JY',
-    text: '✨ Brain AI generated code snippet for custom SVG rail icons saved to workspace components.',
-    timestamp: 'Today at 10:05 AM',
-    isNote: true
-  }
-];
-
 export const DirectMessageView: React.FC<DirectMessageViewProps> = ({ 
-  recipientName = 'Joy Kumar Yuv — You',
-  recipientInitials = 'JY'
+  recipientName,
+  recipientInitials
 }) => {
+  const { user } = useAuth();
+  const currentUserName = user?.name || 'You';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+
+  const effectiveRecipient = recipientName || `${currentUserName} — You`;
+  const effectiveInitials = recipientInitials || userInitials;
+
+  const defaultMessages: DmMessage[] = [
+    {
+      id: 'dm-1',
+      sender: `${currentUserName} (You)`,
+      avatar: userInitials,
+      text: '💡 Personal Scratchpad: Need to follow up with team regarding custom SLA addendum on Monday morning.',
+      timestamp: 'Today at 8:45 AM',
+      isNote: true
+    },
+    {
+      id: 'dm-2',
+      sender: `${currentUserName} (You)`,
+      avatar: userInitials,
+      text: 'Reminder: Check Supabase websocket connection latency after the latest migration.',
+      timestamp: 'Today at 9:12 AM',
+      isNote: true
+    }
+  ];
+
   const getInitialDmMessages = (): DmMessage[] => {
     try {
-      const saved = localStorage.getItem(`clickup_dm_msgs_${recipientName}`);
+      const saved = localStorage.getItem(`clickup_dm_msgs_${effectiveRecipient}`);
       if (saved) return JSON.parse(saved);
     } catch {}
-    return INITIAL_MESSAGES;
+    return defaultMessages;
   };
 
   const [messages, setMessages] = useState<DmMessage[]>(getInitialDmMessages);
 
   useEffect(() => {
     setMessages(getInitialDmMessages());
-  }, [recipientName]);
+  }, [effectiveRecipient]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(`clickup_dm_msgs_${recipientName}`, JSON.stringify(messages));
+      localStorage.setItem(`clickup_dm_msgs_${effectiveRecipient}`, JSON.stringify(messages));
     } catch {}
-  }, [messages, recipientName]);
+  }, [messages, effectiveRecipient]);
   const [inputText, setInputText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -88,8 +88,8 @@ export const DirectMessageView: React.FC<DirectMessageViewProps> = ({
 
     const newMsg: DmMessage = {
       id: `dm-${Date.now()}`,
-      sender: 'Joy Kumar Yuv (You)',
-      avatar: 'JY',
+      sender: `${currentUserName} (You)`,
+      avatar: userInitials,
       text: inputText.trim(),
       timestamp: 'Just now',
       isNote: true
@@ -128,12 +128,12 @@ export const DirectMessageView: React.FC<DirectMessageViewProps> = ({
             fontWeight: 800,
             fontSize: '0.85rem'
           }}>
-            {recipientInitials}
+            {effectiveInitials}
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                {recipientName}
+                {effectiveRecipient}
               </h2>
               <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 700, backgroundColor: '#dcfce7', padding: '1px 6px', borderRadius: '4px' }}>
                 Online

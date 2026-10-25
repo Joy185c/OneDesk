@@ -34,6 +34,7 @@ import {
   Lock,
   Compass
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 // ==========================================
 // SVG ICONS & BRAND ASSETS
@@ -316,6 +317,10 @@ const TEAMMATES: Teammate[] = [
 // ==========================================
 
 export const PlannerView: React.FC = () => {
+  const { user } = useAuth();
+  const currentUserName = user?.name || 'Workspace User';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'WU';
+
   // Calendar Connection State (Defaults to true so user immediately accesses Planner, persisted)
   const [isConnected, setIsConnected] = useState<boolean>(() => {
     const saved = localStorage.getItem('clickup_planner_connected');
@@ -325,9 +330,9 @@ export const PlannerView: React.FC = () => {
   // Google Auth Dialog State
   const [authModalStep, setAuthModalStep] = useState<'none' | 'account_chooser' | 'consent' | 'connecting'>('none');
   const [selectedGoogleAccount, setSelectedGoogleAccount] = useState({
-    name: 'Joy Sarkar',
-    email: 'joy185c@gmail.com',
-    avatar: 'JS'
+    name: currentUserName,
+    email: user?.email || 'user@work.com',
+    avatar: userInitials
   });
 
   // Current Week Offset (0 = current week starting Sun Oct 25, 2026)
@@ -416,13 +421,10 @@ export const PlannerView: React.FC = () => {
 
   // Google Accounts List
   const googleAccounts = [
-    { name: 'Joy Sarkar', email: 'joy185c@gmail.com', avatar: 'JS', signedOut: false },
-    { name: 'Mugdho', email: 'junaedalmugdho@gmail.com', avatar: '👓', signedOut: false },
-    { name: 'Junaid', email: 'junaed.mugdho@gmail.com', avatar: '👨', signedOut: false },
-    { name: 'Joy Kumar Yuv', email: 'joy209688@gmail.com', avatar: '👨‍🎓', signedOut: false },
-    { name: 'Joy Kumar Yuv', email: 'whiteboxaixyz@gmail.com', avatar: 'J', signedOut: true },
-    { name: 'Joy Sarkar', email: 'cscode261@gmail.com', avatar: 'JS', signedOut: true },
-    { name: 'Joy Kumar Yuv 261-16-010', email: '261-16-010@diu.edu.bd', avatar: '👨‍🎓', signedOut: false }
+    { name: currentUserName, email: user?.email || 'user@work.com', avatar: userInitials, signedOut: false },
+    { name: 'Sarah Miller', email: 'sarah.miller@clickup.team', avatar: 'SM', signedOut: false },
+    { name: 'Alex Rivera', email: 'alex.rivera@clickup.team', avatar: 'AR', signedOut: false },
+    { name: 'Priya Gupta', email: 'priya.gupta@clickup.team', avatar: 'PG', signedOut: true }
   ];
 
   // Base Reference Date: Sunday, October 25, 2026

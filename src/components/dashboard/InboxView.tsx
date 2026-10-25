@@ -45,18 +45,16 @@ interface InboxViewProps {
 const INITIAL_NOTIFICATIONS: InboxNotification[] = [
   {
     id: 'notif-1',
-    sender: 'Joy Kumar Yuv',
-    senderAvatar: 'JY',
+    sender: 'Alex Rivera',
+    senderAvatar: 'AR',
     action: 'mentioned you in task',
     taskTitle: 'Enterprise License Agreement',
     taskId: '1',
-    content: 'Joy, please verify the payment terms and customer indemnity clause before the 2:00 PM stakeholder review.',
+    content: 'Please verify the payment terms and customer indemnity clause before the 2:00 PM stakeholder review.',
     timestamp: '10m ago',
     isRead: false,
     tab: 'primary',
-    replies: [
-      { sender: 'Joy Kumar Yuv', text: 'Will review and finalize the PDF attachment shortly.', time: '5m ago' }
-    ]
+    replies: []
   },
   {
     id: 'notif-2',

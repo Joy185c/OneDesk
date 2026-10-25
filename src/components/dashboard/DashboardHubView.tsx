@@ -22,6 +22,7 @@ import {
   Share2
 } from 'lucide-react';
 import { TaskItem } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 interface DashboardItem {
   id: string;
@@ -44,7 +45,7 @@ interface DashboardItem {
   };
 }
 
-const DEFAULT_DASHBOARDS: DashboardItem[] = [
+const getDefaultDashboards = (name: string, initials: string): DashboardItem[] => [
   {
     id: 'dash-main',
     name: 'Dashboard',
@@ -54,14 +55,14 @@ const DEFAULT_DASHBOARDS: DashboardItem[] = [
     dateViewed: '1 hour ago',
     dateUpdated: '1 hour ago',
     owner: {
-      name: 'Joy Kumar Yuv',
+      name,
       avatar: '',
-      initials: 'JY',
+      initials,
       color: '#059669'
     },
     sharing: {
       avatar: '',
-      initials: 'JY',
+      initials,
       color: '#059669'
     }
   }
@@ -73,12 +74,16 @@ interface DashboardHubViewProps {
 }
 
 export const DashboardHubView: React.FC<DashboardHubViewProps> = ({ tasks }) => {
+  const { user } = useAuth();
+  const currentUserName = user?.name || 'You';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+
   const [dashboards, setDashboards] = useState<DashboardItem[]>(() => {
     try {
       const saved = localStorage.getItem('clickup_dashboards_v1');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return DEFAULT_DASHBOARDS;
+    return getDefaultDashboards(currentUserName, userInitials);
   });
 
   const [activeSubTab, setActiveSubTab] = useState<'all' | 'my' | 'shared' | 'private'>('all');
@@ -105,14 +110,14 @@ export const DashboardHubView: React.FC<DashboardHubViewProps> = ({ tasks }) => 
       dateViewed: 'Just now',
       dateUpdated: 'Just now',
       owner: {
-        name: 'Joy Kumar Yuv',
+        name: currentUserName,
         avatar: '',
-        initials: 'JY',
+        initials: userInitials,
         color: '#059669'
       },
       sharing: {
         avatar: '',
-        initials: 'JY',
+        initials: userInitials,
         color: '#059669'
       }
     };
@@ -270,9 +275,9 @@ export const DashboardHubView: React.FC<DashboardHubViewProps> = ({ tasks }) => 
             <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #eaebf0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
               <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Active Assignees</div>
               <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0ea5e9', marginTop: '6px' }}>4 Members</div>
-              <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '4px' }}>Joy Kumar Yuv, Priya Gupta, Sarah Chang, Alex Rivera</div>
+              <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '4px' }}>{currentUserName}, Priya Gupta, Sarah Chang, Alex Rivera</div>
               <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
-                {['JY', 'PG', 'SC', 'AR'].map((init, i) => (
+                {[userInitials, 'PG', 'SC', 'AR'].map((init, i) => (
                   <div key={i} style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: ['#059669', '#10b981', '#8b5cf6', '#7c3aed'][i], color: '#fff', fontSize: '0.66rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
                     {init}
                   </div>

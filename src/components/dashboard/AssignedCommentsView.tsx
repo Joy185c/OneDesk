@@ -38,7 +38,7 @@ const INITIAL_ASSIGNED_COMMENTS: AssignedCommentItem[] = [
     spaceName: 'Sales CRM',
     assigner: 'Sarah Miller',
     assignerAvatar: 'SM',
-    content: 'Review and confirm custom pricing discount matrix with Joy Kumar Yuv before Friday board review.',
+    content: 'Review and confirm custom pricing discount matrix with team before Friday board review.',
     dueDate: 'Tomorrow',
     priority: 'Urgent',
     isResolved: false
@@ -182,7 +182,7 @@ export const AssignedCommentsView: React.FC<AssignedCommentsViewProps> = ({ task
               )}
             </div>
             <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>
-              Action items and assigned comments across all tasks assigned to Joy Kumar Yuv.
+              Action items and assigned comments across all tasks assigned to {user?.name || 'you'}.
             </p>
           </div>
         </div>

@@ -15,6 +15,7 @@ import {
   FileCheck,
   ChevronDown
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export interface FormField {
   id: string;
@@ -37,6 +38,9 @@ export interface FormItem {
 }
 
 export const FormsView: React.FC = () => {
+  const { user } = useAuth();
+  const currentUserName = user?.name || 'Workspace Member';
+
   const [forms, setForms] = useState<FormItem[]>(() => {
     try {
       const saved = localStorage.getItem('clickup_saved_forms_v1');
@@ -91,7 +95,7 @@ export const FormsView: React.FC = () => {
       name: formTitle.trim(),
       description: formDesc.trim(),
       location: 'Sales CRM',
-      createdBy: 'Joy Kumar Yuv',
+      createdBy: currentUserName,
       dateViewed: 'Just now',
       isFavorite: false,
       fields: formFields,

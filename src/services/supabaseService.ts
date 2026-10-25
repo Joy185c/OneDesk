@@ -37,7 +37,7 @@ export const supabaseService = {
         tags: item.tags || ['Feature'],
         commentsCount: item.comments_count || 0,
         assignee: {
-          name: item.assignee_name || 'Joy Kumar Yuv',
+          name: item.assignee_name || 'Team Member',
           avatar: item.assignee_avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
           role: item.assignee_role || 'Product Lead'
         }

@@ -6,11 +6,14 @@ import { TasksFeaturePage } from './pages/TasksFeaturePage';
 import { PricingPage } from './pages/PricingPage';
 import { ComparePage } from './pages/ComparePage';
 import { WorkspacePage } from './pages/WorkspacePage';
+import { JoinWorkspacePage } from './pages/JoinWorkspacePage';
 
 export const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/join" element={<JoinWorkspacePage />} />
+      <Route path="/invite" element={<JoinWorkspacePage />} />
       <Route path="/features/docs" element={<DocsFeaturePage />} />
       <Route path="/features/tasks" element={<TasksFeaturePage />} />
       <Route path="/features/whiteboards" element={<DocsFeaturePage />} />

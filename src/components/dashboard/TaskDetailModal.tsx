@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Flag, 
@@ -11,10 +11,15 @@ import {
   Trash2, 
   Send,
   Sparkles,
-  Tag
+  Tag,
+  CheckCircle2,
+  ArrowRight,
+  ShieldAlert,
+  History
 } from 'lucide-react';
 import { TaskItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { memberService, WorkspaceMember } from '../../services/memberService';
 
 interface TaskDetailModalProps {
   task: TaskItem | null;
@@ -32,12 +37,17 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const { user } = useAuth();
   if (!task) return null;
 
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [title, setTitle] = useState(task.title);
   const [status, setStatus] = useState(task.status);
   const [priority, setPriority] = useState(task.priority);
+  const [assigneeName, setAssigneeName] = useState(task.assignee.name);
   const [timeEstimate, setTimeEstimate] = useState(task.timeEstimate);
   const [dueDate, setDueDate] = useState(task.dueDate);
   const [newComment, setNewComment] = useState('');
+  const [activities, setActivities] = useState<Array<{ id: string; text: string; time: string }>>([
+    { id: 'act-1', text: `Task created in Sprint Backlog`, time: 'Earlier' }
+  ]);
   const [comments, setComments] = useState<Array<{ id: string; author: string; avatar: string; time: string; text: string }>>([
     {
       id: 'c1',
@@ -52,6 +62,57 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     { id: 'st2', title: 'Implement responsive breakpoints', done: false }
   ]);
   const [newSubtaskText, setNewSubtaskText] = useState('');
+
+  useEffect(() => {
+    const list = memberService.getWorkspaceMembers();
+    setMembers(list);
+  }, []);
+
+  const handleStatusChange = (newStatus: 'TODO' | 'IN PROGRESS' | 'REVIEW' | 'COMPLETE') => {
+    setStatus(newStatus);
+    const updated = {
+      ...task,
+      title,
+      status: newStatus,
+      priority,
+      timeEstimate,
+      dueDate,
+      commentsCount: comments.length
+    };
+    onUpdateTask(updated);
+
+    setActivities(prev => [
+      { id: 'act-' + Date.now(), text: `Status updated to ${newStatus}`, time: 'Just now' },
+      ...prev
+    ]);
+  };
+
+  const handleAssigneeChange = (memberId: string) => {
+    const selected = members.find(m => m.id === memberId);
+    if (!selected) return;
+
+    setAssigneeName(selected.name);
+    const updated: TaskItem = {
+      ...task,
+      title,
+      status,
+      priority,
+      timeEstimate,
+      dueDate,
+      assignee: {
+        name: selected.name,
+        avatar: selected.avatar,
+        role: selected.role
+      },
+      commentsCount: comments.length
+    };
+    onUpdateTask(updated);
+
+    setActivities(prev => [
+      { id: 'act-' + Date.now(), text: `Re-assigned to ${selected.name} (${selected.role})`, time: 'Just now' },
+      ...prev
+    ]);
+  };
 
   const handleSave = () => {
     onUpdateTask({
@@ -70,7 +131,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     if (!newComment.trim()) return;
     const added = {
       id: String(Date.now()),
-      author: user?.name || 'Alex Rivera',
+      author: user?.name || 'You',
       avatar: user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
       time: 'Just now',
       text: newComment.trim()
@@ -97,6 +158,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     setSubtasks(subtasks.map(st => st.id === id ? { ...st, done: !st.done } : st));
   };
 
+  const statusList: Array<{ id: 'TODO' | 'IN PROGRESS' | 'REVIEW' | 'COMPLETE'; label: string; color: string; bg: string }> = [
+    { id: 'TODO', label: 'TO DO', color: '#64748b', bg: '#f1f5f9' },
+    { id: 'IN PROGRESS', label: 'IN PROGRESS', color: '#4f46e5', bg: '#e0e7ff' },
+    { id: 'REVIEW', label: 'IN REVIEW', color: '#d97706', bg: '#fef3c7' },
+    { id: 'COMPLETE', label: 'COMPLETE', color: '#16a34a', bg: '#dcfce7' }
+  ];
+
   return (
     <div style={{
       position: 'fixed',
@@ -114,7 +182,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       <div style={{
         backgroundColor: '#ffffff',
         width: '100%',
-        maxWidth: '680px',
+        maxWidth: '720px',
         height: '100%',
         boxShadow: '-10px 0 30px rgba(0,0,0,0.15)',
         display: 'flex',
@@ -131,12 +199,12 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           backgroundColor: '#f9fafb'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontWeight: 800, color: '#7b68ee', fontSize: '0.86rem' }}>
+            <span style={{ fontWeight: 800, color: '#7b68ee', fontSize: '0.9rem' }}>
               {task.key}
             </span>
             <span style={{ color: '#9ca3af' }}>in</span>
             <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#374151' }}>
-              Core Roadmap / Sprints
+              Sales CRM Sprint Pipeline
             </span>
           </div>
 
@@ -156,7 +224,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 padding: '6px 12px',
                 borderRadius: '6px',
                 fontSize: '0.82rem',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                background: 'none',
+                border: '1px solid #fecaca'
               }}
             >
               <Trash2 size={14} />
@@ -173,11 +243,70 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                border: 'none'
               }}
             >
               <X size={18} color="#4b5563" />
             </button>
+          </div>
+        </div>
+
+        {/* Status Pipeline Tracking Bar (Requirement 2) */}
+        <div style={{
+          padding: '12px 24px',
+          backgroundColor: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Status Pipeline Tracking
+            </span>
+            <span style={{
+              fontSize: '0.74rem',
+              fontWeight: 800,
+              padding: '2px 8px',
+              borderRadius: '6px',
+              backgroundColor: status === 'COMPLETE' ? '#dcfce7' : '#ede9fe',
+              color: status === 'COMPLETE' ? '#16a34a' : '#7c3aed'
+            }}>
+              Current: {status}
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+            {statusList.map((st, idx) => {
+              const isActive = status === st.id;
+              return (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => handleStatusChange(st.id)}
+                  style={{
+                    padding: '8px 6px',
+                    borderRadius: '8px',
+                    border: '1.5px solid',
+                    borderColor: isActive ? st.color : '#e2e8f0',
+                    backgroundColor: isActive ? st.bg : '#f8fafc',
+                    color: isActive ? st.color : '#64748b',
+                    fontSize: '0.76rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {isActive && <CheckCircle2 size={13} />}
+                  <span>{st.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -189,59 +318,91 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={handleSave}
+            placeholder="Task Title..."
             style={{
               width: '100%',
-              fontSize: '1.45rem',
+              fontSize: '1.4rem',
               fontWeight: 800,
               color: '#111827',
               border: 'none',
               outline: 'none',
               marginBottom: '20px',
-              fontFamily: 'var(--font-display)'
+              boxSizing: 'border-box'
             }}
           />
 
-          {/* Quick Property Grid */}
+          {/* Quick Property Grid with Interactive Assignee & Status */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: '120px 1fr',
-            rowGap: '12px',
+            rowGap: '14px',
+            alignItems: 'center',
             fontSize: '0.88rem',
             backgroundColor: '#f8fafc',
-            padding: '16px',
+            padding: '18px',
             borderRadius: '12px',
             border: '1px solid #e2e8f0',
             marginBottom: '24px'
           }}>
-            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Assignee Selection (Requirement 2) */}
+            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+              <UserIcon size={14} color="#7c3aed" /> Assignee:
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img
+                src={task.assignee.avatar}
+                alt=""
+                style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #7c3aed' }}
+              />
+              <select
+                value={members.find(m => m.name === assigneeName)?.id || ''}
+                onChange={(e) => handleAssigneeChange(e.target.value)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  backgroundColor: '#ffffff',
+                  color: '#1e293b',
+                  cursor: 'pointer'
+                }}
+              >
+                {members.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} ({m.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Select */}
+            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
               <CheckSquare size={14} /> Status:
             </span>
             <div>
               <select
                 value={status}
-                onChange={(e) => {
-                  const s = e.target.value as any;
-                  setStatus(s);
-                  onUpdateTask({ ...task, status: s });
-                }}
+                onChange={(e) => handleStatusChange(e.target.value as any)}
                 style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #cbd5e1',
                   fontSize: '0.84rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   backgroundColor: '#ffffff',
                   cursor: 'pointer'
                 }}
               >
-                <option value="TODO">TODO</option>
+                <option value="TODO">TO DO</option>
                 <option value="IN PROGRESS">IN PROGRESS</option>
                 <option value="REVIEW">REVIEW</option>
                 <option value="COMPLETE">COMPLETE</option>
               </select>
             </div>
 
-            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Priority */}
+            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
               <Flag size={14} /> Priority:
             </span>
             <div>
@@ -253,11 +414,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   onUpdateTask({ ...task, priority: p });
                 }}
                 style={{
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #cbd5e1',
                   fontSize: '0.84rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   backgroundColor: '#ffffff',
                   cursor: 'pointer'
                 }}
@@ -269,7 +430,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               </select>
             </div>
 
-            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Due Date */}
+            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
               <Calendar size={14} /> Due Date:
             </span>
             <div>
@@ -279,15 +441,17 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 onChange={(e) => setDueDate(e.target.value)}
                 onBlur={handleSave}
                 style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '0.84rem'
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: '0.84rem',
+                  backgroundColor: '#ffffff'
                 }}
               />
             </div>
 
-            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {/* Estimate */}
+            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
               <Clock size={14} /> Estimate:
             </span>
             <div>
@@ -297,32 +461,21 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 onChange={(e) => setTimeEstimate(e.target.value)}
                 onBlur={handleSave}
                 style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid #cbd5e1',
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #cbd5e1',
                   fontSize: '0.84rem',
-                  width: '90px'
+                  width: '90px',
+                  backgroundColor: '#ffffff'
                 }}
               />
-            </div>
-
-            <span style={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <UserIcon size={14} /> Assignee:
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img
-                src={task.assignee.avatar}
-                alt=""
-                style={{ width: '22px', height: '22px', borderRadius: '50%' }}
-              />
-              <span style={{ fontWeight: 600, color: '#1e293b' }}>{task.assignee.name}</span>
             </div>
           </div>
 
           {/* Subtasks Section */}
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <h4 style={{ fontSize: '0.96rem', fontWeight: 700, color: '#1e293b' }}>
+              <h4 style={{ fontSize: '0.96rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
                 Subtasks ({subtasks.filter(s => s.done).length}/{subtasks.length})
               </h4>
             </div>
@@ -370,7 +523,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   flex: 1,
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
+                  border: '1.5px solid #cbd5e1',
                   fontSize: '0.86rem',
                   outline: 'none'
                 }}
@@ -384,7 +537,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   color: '#ffffff',
                   fontSize: '0.84rem',
                   fontWeight: 600,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  border: 'none'
                 }}
               >
                 Add
@@ -392,11 +546,28 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             </form>
           </div>
 
+          {/* Activity / Status Tracking Log */}
+          <div style={{ marginBottom: '24px' }}>
+            <h4 style={{ fontSize: '0.96rem', fontWeight: 700, color: '#1e293b', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <History size={16} color="#7c3aed" />
+              <span>Status & Assignment Activity</span>
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {activities.map(act => (
+                <div key={act.id} style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#7c3aed' }} />
+                  <span style={{ fontWeight: 600, color: '#334155' }}>{act.text}</span>
+                  <span style={{ color: '#94a3b8' }}>• {act.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Activity / Comments Stream */}
           <div>
             <h4 style={{ fontSize: '0.96rem', fontWeight: 700, color: '#1e293b', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <MessageSquare size={16} color="#7b68ee" />
-              <span>Activity & Discussion</span>
+              <span>Team Discussion</span>
             </h4>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
@@ -418,7 +589,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                       <strong style={{ fontSize: '0.84rem', color: '#1e293b' }}>{c.author}</strong>
                       <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{c.time}</span>
                     </div>
-                    <p style={{ fontSize: '0.86rem', color: '#334155', lineHeight: 1.4 }}>
+                    <p style={{ fontSize: '0.86rem', color: '#334155', lineHeight: 1.4, margin: 0 }}>
                       {c.text}
                     </p>
                   </div>
@@ -432,14 +603,14 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                border: '1px solid #cbd5e1',
+                border: '1.5px solid #cbd5e1',
                 borderRadius: '10px',
                 padding: '8px 12px',
                 backgroundColor: '#ffffff'
               }}>
                 <input
                   type="text"
-                  placeholder="Write a comment or update (cmd + enter)..."
+                  placeholder="Write a comment or status update..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   style={{
@@ -461,11 +632,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    fontSize: '0.8rem',
-                    fontWeight: 600
+                    fontSize: '0.82rem',
+                    fontWeight: 700
                   }}
                 >
-                  <Send size={13} />
+                  <Send size={14} />
                   <span>Send</span>
                 </button>
               </div>

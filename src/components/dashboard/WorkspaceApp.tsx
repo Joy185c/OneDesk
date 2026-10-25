@@ -50,7 +50,8 @@ import {
   Pause,
   Play,
   Tag,
-  DollarSign
+  DollarSign,
+  Lock
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { INITIAL_TASKS } from '../../data/clickupData';
@@ -308,6 +309,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
 
   const isDemoUser = user?.id === 'u_joy_1';
   const currentUserName = user?.name || 'You';
+  const userRole = user?.role || 'Workspace Owner';
+  const isAdmin = userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('owner');
   const workspaceName = user?.workspaceName || (user?.name ? `${user.name}'s Workspace` : 'My Workspace');
   const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
 
@@ -320,10 +323,22 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
     { id: 'brain', name: 'Brain', role: 'ClickUp Brain 3.0' }
   ]);
 
-  const [channels, setChannels] = useState<Array<{ id: string; name: string; isGeneral?: boolean }>>([
-    { id: 'general', name: `General - ${workspaceName}`, isGeneral: true },
-    { id: 'welcome', name: 'Welcome', isGeneral: false }
-  ]);
+  const [channels, setChannels] = useState<Array<{ id: string; name: string; isGeneral?: boolean }>>(() => {
+    try {
+      const saved = localStorage.getItem('clickjoy_workspace_channels_v2');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [
+      { id: 'general', name: `General - ${workspaceName}`, isGeneral: true },
+      { id: 'welcome', name: 'Welcome', isGeneral: false }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('clickjoy_workspace_channels_v2', JSON.stringify(channels));
+    } catch {}
+  }, [channels]);
 
   const [directMessages, setDirectMessages] = useState<Array<{ id: string; name: string; initials: string }>>([
     { id: user?.id || 'me', name: `${currentUserName} — You`, initials: userInitials }
@@ -1171,13 +1186,20 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                     <span>New Doc</span>
                   </button>
                   <button
-                    onClick={() => { setIsCreateDropdownOpen(false); setIsNewChannelOpen(true); }}
+                    onClick={() => {
+                      setIsCreateDropdownOpen(false);
+                      if (!isAdmin) {
+                        showToast('Permission Denied: Only Workspace Admins can create new channels.');
+                        return;
+                      }
+                      setIsNewChannelOpen(true);
+                    }}
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', border: 'none', background: 'none', borderRadius: '6px', fontSize: '0.78rem', color: '#1e293b', cursor: 'pointer', textAlign: 'left' }}
                     onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f1f5f9'}
                     onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <Hash size={14} color="#10b981" />
-                    <span>New Channel</span>
+                    <span>New Channel {isAdmin ? '' : '(Admin Only)'}</span>
                   </button>
                   <button
                     onClick={() => { setIsCreateDropdownOpen(false); setActiveTab('posts'); }}
@@ -1371,7 +1393,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               <div 
                 onClick={() => {
                   setActiveTab('list');
-                  showToast('Filtered to Joy Kumar Yuv tasks');
+                  showToast(`Filtered to ${currentUserName} tasks`);
                 }}
                 style={{
                   display: 'flex',
@@ -1686,8 +1708,29 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
 
             {/* Channels Section (Matches Screenshot 1:1) */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '0.74rem', fontWeight: 600, color: '#475569', marginBottom: '6px', padding: '0 4px' }}>
-                Channels
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.74rem', fontWeight: 600, color: '#475569', marginBottom: '6px', padding: '0 4px' }}>
+                <span>Channels</span>
+                {isAdmin ? (
+                  <button
+                    onClick={() => setIsNewChannelOpen(true)}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      color: '#64748b',
+                      cursor: 'pointer',
+                      fontSize: '0.95rem',
+                      lineHeight: 1,
+                      padding: '0 2px'
+                    }}
+                    title="Create New Channel (Admin only)"
+                  >
+                    +
+                  </button>
+                ) : (
+                  <span title="Only Workspace Admins can create new channels" style={{ color: '#94a3b8', display: 'flex', alignItems: 'center' }}>
+                    <Lock size={12} />
+                  </span>
+                )}
               </div>
 
               {/* General Channel with J Badge on Hash */}
@@ -1793,13 +1836,30 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               })}
 
               <div 
-                onClick={() => setIsNewChannelOpen(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', color: '#64748b', padding: '4px 6px', cursor: 'pointer', borderRadius: '4px', marginTop: '2px' }}
+                onClick={() => {
+                  if (!isAdmin) {
+                    showToast('Permission Denied: Only Workspace Admins can create new channels.');
+                    return;
+                  }
+                  setIsNewChannelOpen(true);
+                }}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  fontSize: '0.76rem', 
+                  color: isAdmin ? '#64748b' : '#94a3b8', 
+                  padding: '4px 6px', 
+                  cursor: 'pointer', 
+                  borderRadius: '4px', 
+                  marginTop: '2px' 
+                }}
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                title={isAdmin ? "Create Channel (Admin Only)" : "Only Workspace Admins can create channels"}
               >
-                <span style={{ fontSize: '0.85rem' }}>+</span>
-                <span>Add Channel</span>
+                {isAdmin ? <span style={{ fontSize: '0.85rem' }}>+</span> : <Lock size={12} />}
+                <span>Add Channel {isAdmin ? '' : '(Admin)'}</span>
               </div>
             </div>
 
@@ -2714,6 +2774,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
             <div style={{ flex: 1, display: 'flex', height: '100%', overflow: 'hidden' }}>
               <TeamsView 
                 tasks={tasks}
+                onOpenTask={(task) => setSelectedTask(task)}
                 onOpenInviteModal={() => setIsInviteOpen(true)} 
                 onOpenUpgradeModal={() => setIsUpgradeOpen(true)}
               />
@@ -2743,7 +2804,10 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
           {/* Channel Chat View */}
           {activeTab === 'channel' && (
             <div style={{ flex: 1, display: 'flex' }}>
-              <ChannelChatView channelKey={activeChannel} />
+              <ChannelChatView 
+                channelKey={activeChannel} 
+                onOpenInviteModal={() => setIsInviteOpen(true)} 
+              />
             </div>
           )}
 
@@ -3156,6 +3220,16 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Hash size={18} color="#059669" />
                 <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Create Channel</h3>
+                <span style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  backgroundColor: isAdmin ? '#dcfce7' : '#fee2e2',
+                  color: isAdmin ? '#16a34a' : '#dc2626',
+                  padding: '2px 6px',
+                  borderRadius: '100px'
+                }}>
+                  {isAdmin ? 'Admin Authorized' : 'Admin Only'}
+                </span>
               </div>
               <button 
                 onClick={() => setIsNewChannelOpen(false)}
@@ -3164,6 +3238,24 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 <X size={18} />
               </button>
             </div>
+
+            {!isAdmin && (
+              <div style={{
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '10px',
+                padding: '10px 12px',
+                color: '#991b1b',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <Lock size={15} />
+                <span>Only Workspace Admins or Owners are authorized to create new channels.</span>
+              </div>
+            )}
 
             <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
               Channels are where your team communicates. They’re best organized around a topic or project.
@@ -3178,6 +3270,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   <span style={{ position: 'absolute', left: '10px', color: '#94a3b8', fontWeight: 800 }}>#</span>
                   <input
                     type="text"
+                    disabled={!isAdmin}
                     placeholder="e.g. sprint-planning, leads-crm"
                     value={newChannelName}
                     onChange={e => setNewChannelName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
@@ -3188,7 +3281,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                       border: '1px solid #cbd5e1',
                       fontSize: '0.84rem',
                       outline: 'none',
-                      boxSizing: 'border-box'
+                      boxSizing: 'border-box',
+                      backgroundColor: isAdmin ? '#ffffff' : '#f1f5f9'
                     }}
                     autoFocus
                   />
@@ -3201,6 +3295,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 </label>
                 <input
                   type="text"
+                  disabled={!isAdmin}
                   placeholder="What is this channel about?"
                   value={newChannelTopic}
                   onChange={e => setNewChannelTopic(e.target.value)}
@@ -3211,7 +3306,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                     border: '1px solid #cbd5e1',
                     fontSize: '0.84rem',
                     outline: 'none',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    backgroundColor: isAdmin ? '#ffffff' : '#f1f5f9'
                   }}
                 />
               </div>
@@ -3235,7 +3331,12 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 Cancel
               </button>
               <button
+                disabled={!isAdmin}
                 onClick={() => {
+                  if (!isAdmin) {
+                    showToast('Permission Denied: Only Workspace Admins can create new channels.');
+                    return;
+                  }
                   if (!newChannelName.trim()) {
                     showToast('Please enter a channel name');
                     return;
@@ -3256,17 +3357,17 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 }}
                 style={{
                   flex: 1,
-                  backgroundColor: '#059669',
+                  backgroundColor: isAdmin ? '#059669' : '#cbd5e1',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   padding: '9px',
                   fontSize: '0.84rem',
                   fontWeight: 700,
-                  cursor: 'pointer'
+                  cursor: isAdmin ? 'pointer' : 'not-allowed'
                 }}
               >
-                Create Channel
+                {isAdmin ? 'Create Channel' : 'Admin Required'}
               </button>
             </div>
           </div>
@@ -3462,7 +3563,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
                   {[
                     { name: 'Sarah Miller', initials: 'SM' },
-                    { name: 'Joy Kumar Yuv — You', initials: 'JY' },
+                    { name: `${currentUserName} — You`, initials: userInitials },
                     { name: 'Alex Morgan', initials: 'AM' },
                     { name: 'Emma Davis', initials: 'ED' },
                     { name: 'David Chen', initials: 'DC' }
@@ -3626,7 +3727,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   { table: 'public.task_comments', records: '24', status: 'Synced' },
                   { table: 'public.super_agents', records: superAgents.length, status: 'Active' },
                   { table: 'public.channels', records: channels.length, status: 'Active' },
-                  { table: 'public.workspaces', records: '1 (Joy Kumar Yuv)', status: 'Connected' }
+                  { table: 'public.workspaces', records: `1 (${workspaceName})`, status: 'Connected' }
                 ].map(r => (
                   <div key={r.table} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
                     <span style={{ fontFamily: 'monospace', color: '#334155' }}>{r.table}</span>
@@ -3755,10 +3856,10 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  J
+                  {userInitials[0] || 'U'}
                 </div>
                 <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
-                  Joy Kumar Yuv
+                  {currentUserName}
                 </span>
               </div>
 
@@ -3959,7 +4060,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                     notes: globalNotes.trim(),
                     tags: globalTags,
                     billable: globalBillable,
-                    user: 'Joy Kumar Yuv'
+                    user: currentUserName
                   };
 
                   try {

@@ -184,13 +184,13 @@ const DEFAULT_CONVERSATIONS: BrainConversation[] = [
       {
         id: 'msg-start-ai',
         sender: 'ai',
-        text: "I'm in, Joy. Your Sales CRM is underway. Want to add sample leads, tighten up the follow-up workflow, or start somewhere else?",
+        text: "I'm in. Your Sales CRM is underway. Want to add sample leads, tighten up the follow-up workflow, or start somewhere else?",
         timestamp: 'Just now',
         providerUsed: 'Brain²',
         modelUsed: 'Max',
         stepsCount: 1,
         stepsDetails: [
-          "Inspected Joy Kumar Yuv's Workspace active tasks & CRM pipeline",
+          "Inspected active tasks & CRM pipeline",
           "Synthesized action workflow with ClickUp Brain²"
         ],
         suggestions: [
@@ -300,9 +300,9 @@ export const ClickUpBrainView: React.FC<ClickUpBrainViewProps> = ({
 }) => {
   const { user } = useAuth();
   const isDemoUser = user?.id === 'u_joy_1';
-  const currentUserName = user?.name || (isDemoUser ? 'Joy Kumar Yuv' : 'User');
-  const workspaceName = user?.workspaceName || (isDemoUser ? "Joy Kumar Yuv's Workspace" : `${currentUserName}'s Team Workspace`);
-  const userInitials = (user?.name || (isDemoUser ? 'Joy Kumar Yuv' : 'User')).split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const currentUserName = user?.name || 'Workspace User';
+  const workspaceName = user?.workspaceName || `${currentUserName}'s Team Workspace`;
+  const userInitials = currentUserName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   const conversationsStorageKey = `clickup_brain_conversations_${user?.id || 'guest'}`;
   const artifactsStorageKey = `clickup_artifacts_${user?.id || 'guest'}`;

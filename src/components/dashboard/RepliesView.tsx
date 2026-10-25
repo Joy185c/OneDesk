@@ -33,7 +33,7 @@ interface RepliesViewProps {
   onOpenTask: (task: TaskItem) => void;
 }
 
-const INITIAL_THREADS: ReplyThread[] = [
+const getInitialThreads = (currentUserName: string, userInitials: string): ReplyThread[] => [
   {
     id: 'th-1',
     taskTitle: 'Enterprise License Agreement',
@@ -45,13 +45,13 @@ const INITIAL_THREADS: ReplyThread[] = [
         id: 'm-1',
         author: 'Sarah Miller',
         avatar: 'SM',
-        content: 'Joy, did the customer agree to the annual upfront payment schedule?',
+        content: `Hi ${currentUserName.split(' ')[0]}, did the customer agree to the annual upfront payment schedule?`,
         timestamp: 'Today at 10:14 AM'
       },
       {
         id: 'm-2',
-        author: 'Joy Kumar Yuv (You)',
-        avatar: 'JY',
+        author: `${currentUserName} (You)`,
+        avatar: userInitials,
         content: 'Yes, they approved the 1-year contract with NET 30 invoicing terms.',
         timestamp: 'Today at 10:20 AM',
         isCurrentUser: true
@@ -81,8 +81,8 @@ const INITIAL_THREADS: ReplyThread[] = [
       },
       {
         id: 'm-5',
-        author: 'Joy Kumar Yuv (You)',
-        avatar: 'JY',
+        author: `${currentUserName} (You)`,
+        avatar: userInitials,
         content: 'Yes, I added responsive breakpoints for viewport width under 768px.',
         timestamp: 'Yesterday at 5:12 PM',
         isCurrentUser: true
@@ -105,8 +105,8 @@ const INITIAL_THREADS: ReplyThread[] = [
       },
       {
         id: 'm-7',
-        author: 'Joy Kumar Yuv (You)',
-        avatar: 'JY',
+        author: `${currentUserName} (You)`,
+        avatar: userInitials,
         content: 'Verified realtime subscription channel is active with zero drops.',
         timestamp: 'Oct 23 at 2:15 PM',
         isCurrentUser: true
@@ -126,9 +126,9 @@ export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) =
       const storageKey = isDemoUser ? 'clickup_replies_v1' : `clickup_replies_${user?.id || 'guest'}`;
       const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
-      return isDemoUser ? INITIAL_THREADS : [];
+      return getInitialThreads(currentUserName, userInitials);
     } catch {}
-    return isDemoUser ? INITIAL_THREADS : [];
+    return getInitialThreads(currentUserName, userInitials);
   });
 
   useEffect(() => {

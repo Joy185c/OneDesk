@@ -46,7 +46,7 @@ const DEFAULT_DOCS: DocItem[] = [
     dateUpdated: 'Yesterday',
     dateViewed: '-',
     isFavorite: false,
-    content: `# Welcome to Joy Kumar Yuv's Workspace
+    content: `# Welcome to ClickUp Workspace
 
 Welcome to your team's centralized workspace. Here you can organize tasks, write collaborative documentation, run AI Super Agents, and coordinate sprint deliverables.
 

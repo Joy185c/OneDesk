@@ -232,18 +232,18 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
     } catch (e) {}
   }, [approvalsList]);
 
-  // Update Joy Kumar Yuv's daily hours in team sheet based on actual entries
+  // Update current user's daily hours in team sheet based on actual entries
   useEffect(() => {
-    const joyDaily = [0, 0, 0, 0, 0, 0, 0];
+    const userDaily = [0, 0, 0, 0, 0, 0, 0];
     entries.forEach(e => {
       if (e.dayOfWeek >= 0 && e.dayOfWeek <= 6) {
-        joyDaily[e.dayOfWeek] += Math.round((e.durationSeconds / 3600) * 10) / 10;
+        userDaily[e.dayOfWeek] += Math.round((e.durationSeconds / 3600) * 10) / 10;
       }
     });
 
     setTeamTimesheets(prev => prev.map(m => {
-      if (m.name === currentUserName || m.name === 'Joy Kumar Yuv' || m.id === 'mem-user') {
-        return { ...m, dailyHours: joyDaily };
+      if (m.name === currentUserName || m.id === 'mem-user') {
+        return { ...m, dailyHours: userDaily };
       }
       return m;
     }));

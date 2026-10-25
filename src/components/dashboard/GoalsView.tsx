@@ -24,6 +24,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { TaskItem } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 export interface GoalTarget {
   id: string;
@@ -47,13 +48,13 @@ export interface GoalItem {
   targets: GoalTarget[];
 }
 
-const DEFAULT_GOALS: GoalItem[] = [
+const getDefaultGoals = (ownerName: string, ownerInitials: string): GoalItem[] => [
   {
     id: 'goal-1',
     name: 'Scale Q4 Enterprise Pipeline',
     description: 'Accelerate outbound sales CRM demos and close 12 key enterprise deals before year end.',
-    owner: 'Joy Kumar Yuv',
-    ownerInitials: 'JY',
+    owner: ownerName,
+    ownerInitials: ownerInitials,
     color: '#7c3aed',
     icon: '🎯',
     dueDate: 'Dec 31, 2026',
@@ -87,12 +88,16 @@ const DEFAULT_GOALS: GoalItem[] = [
 ];
 
 export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
+  const { user } = useAuth();
+  const currentUserName = user?.name || 'You';
+  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+
   const [goals, setGoals] = useState<GoalItem[]>(() => {
     try {
       const saved = localStorage.getItem('clickup_goals_v1');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return DEFAULT_GOALS;
+    return getDefaultGoals(currentUserName, userInitials);
   });
 
   const [activeTab, setActiveTab] = useState<'overview' | 'all' | 'my'>('overview');
@@ -140,8 +145,8 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
       id: 'goal-' + Date.now(),
       name: newGoalName.trim(),
       description: newGoalDesc.trim() || 'Strategic high-level workspace milestone',
-      owner: 'Joy Kumar Yuv',
-      ownerInitials: 'JY',
+      owner: currentUserName,
+      ownerInitials: userInitials,
       color: newGoalColor,
       icon: newGoalIcon,
       dueDate: newGoalDueDate,
@@ -270,7 +275,7 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
                 boxShadow: activeTab === 'my' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none'
               }}
             >
-              My Goals ({goals.filter(g => g.owner === 'Joy Kumar Yuv').length})
+              My Goals ({goals.filter(g => g.owner === currentUserName).length})
             </button>
           </div>
         </div>
@@ -475,9 +480,9 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  JY
+                  {userInitials}
                 </div>
-                <span style={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>Joy Kumar Yuv (Lead)</span>
+                <span style={{ fontSize: '0.76rem', color: '#475569', fontWeight: 600 }}>{currentUserName} (Lead)</span>
               </div>
 
               <button

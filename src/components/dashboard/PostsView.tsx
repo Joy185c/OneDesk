@@ -42,9 +42,9 @@ interface PostItem {
 const INITIAL_POSTS: PostItem[] = [
   {
     id: 'p-1',
-    author: 'Joy Kumar Yuv',
+    author: 'Workspace Admin',
     authorRole: 'Workspace Owner',
-    avatar: 'JY',
+    avatar: 'WA',
     title: '🎉 Welcome to ClickUp 3.0 — The Everything App For Work!',
     badge: 'Announcement',
     content: 'We have successfully migrated our entire workspace to ClickUp 3.0! Enjoy custom navigation rails, real-time whiteboards, interactive calendar sprint planners, and ClickUp Brain AI integration.',
@@ -68,7 +68,7 @@ const INITIAL_POSTS: PostItem[] = [
     reactions: { thumbsUp: 28, heart: 16, rocket: 34, party: 25 },
     userReactions: { party: true },
     comments: [
-      { id: 'c-3', author: 'Joy Kumar Yuv', avatar: 'JY', text: 'Incredible execution team! Let us push hard for the enterprise renewals next.', time: '4:00 PM' }
+      { id: 'c-3', author: 'Alex Rivera', avatar: 'AR', text: 'Incredible execution team! Let us push hard for the enterprise renewals next.', time: '4:00 PM' }
     ]
   }
 ];
@@ -148,8 +148,8 @@ export const PostsView: React.FC = () => {
           ...p.comments,
           {
             id: `c-${Date.now()}`,
-            author: 'Joy Kumar Yuv (You)',
-            avatar: 'JY',
+            author: `${currentUserName} (You)`,
+            avatar: userInitials,
             text: text.trim(),
             time: 'Just now'
           }
@@ -167,7 +167,7 @@ export const PostsView: React.FC = () => {
     const newPost: PostItem = {
       id: `p-${Date.now()}`,
       author: currentUserName,
-      authorRole: 'Workspace Owner',
+      authorRole: user?.role || 'Team Member',
       avatar: userInitials,
       title: newTitle.trim(),
       badge: newBadge,
@@ -215,7 +215,7 @@ export const PostsView: React.FC = () => {
               Workspace Posts & Announcements
             </h1>
             <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>
-              Company-wide updates, milestones, and releases for Joy Kumar Yuv's Workspace.
+              Company-wide updates, milestones, and releases for {workspaceName}.
             </p>
           </div>
         </div>

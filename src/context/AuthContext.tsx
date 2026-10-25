@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { memberService } from '../services/memberService';
 
 export interface User {
   id: string;
@@ -35,6 +36,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (user) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      try {
+        memberService.addWorkspaceMember({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: (user.role as 'Owner' | 'Admin' | 'Member' | 'Guest') || 'Owner',
+          status: 'Online',
+          avatar: user.avatar,
+          avatarBg: '#059669',
+          initials: user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U',
+          isYou: true
+        });
+      } catch (e) {
+        console.error('Failed to sync memberService:', e);
+      }
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
