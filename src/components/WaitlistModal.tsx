@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
-import { X, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, Sparkles, CheckCircle2, ArrowRight, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface WaitlistModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ export const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose })
   const [email, setEmail] = useState('');
   const [teamSize, setTeamSize] = useState('11-50 people');
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
@@ -173,13 +175,46 @@ export const WaitlistModal: React.FC<WaitlistModalProps> = ({ isOpen, onClose })
               We have reserved your spot for <strong>{email}</strong>. We'll send your priority activation link to your inbox.
             </p>
 
-            <button
-              onClick={onClose}
-              className="btn-primary"
-              style={{ width: '100%', padding: '12px', borderRadius: '10px' }}
-            >
-              Back to Experience
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                onClick={() => {
+                  onClose();
+                  navigate('/workspace');
+                }}
+                className="btn-primary"
+                style={{
+                  width: '100%',
+                  padding: '13px',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontSize: '0.94rem',
+                  fontWeight: 800
+                }}
+              >
+                <span>Launch Interactive Workspace Now</span>
+                <ArrowRight size={16} />
+              </button>
+
+              <button
+                onClick={onClose}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                  backgroundColor: '#f8fafc',
+                  color: '#64748b',
+                  fontSize: '0.86rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Back to Website
+              </button>
+            </div>
           </div>
         )}
       </div>

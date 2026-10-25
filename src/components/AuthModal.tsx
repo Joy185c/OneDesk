@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { X, Sparkles, Zap, ArrowRight, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login, signup, demoLogin } = useAuth();
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
@@ -32,6 +34,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
       login(email, password);
     }
     onClose();
+    navigate('/workspace');
   };
 
   const handleDemoAccess = () => {
@@ -42,6 +45,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, initialMode, onClo
     });
     demoLogin();
     onClose();
+    navigate('/workspace');
   };
 
   return (
