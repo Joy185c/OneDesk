@@ -42,9 +42,10 @@ import {
   Image,
   GitFork,
   ChevronRight,
-  Link2
+  Link2,
+  ExternalLink
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export type ShowcaseFeature = 
   | 'projects' 
@@ -96,6 +97,26 @@ export const ClickUpInteractiveShowcase: React.FC = () => {
     { id: 'dashboards', label: 'Dashboards' },
     { id: 'scheduling', label: 'Scheduling' }
   ];
+
+  const navigate = useNavigate();
+
+  const getWorkspaceUrlForFeature = (feat: ShowcaseFeature): string => {
+    switch (feat) {
+      case 'projects': return '/workspace?tab=projects';
+      case 'chat': return '/workspace?tab=chat';
+      case 'brain': return '/workspace?tab=brain';
+      case 'agents': return '/workspace?tab=agents';
+      case 'sprints': return '/workspace?tab=sprints';
+      case 'time': return '/workspace?tab=time';
+      case 'calendar': return '/workspace?tab=calendar';
+      case 'docs': return '/workspace?tab=docs';
+      case 'whiteboards': return '/workspace?tab=whiteboards';
+      case 'automations': return '/workspace?tab=automations';
+      case 'dashboards': return '/workspace?tab=dashboards';
+      case 'scheduling': return '/workspace?tab=scheduling';
+      default: return '/workspace';
+    }
+  };
 
   const handleSelect = (id: ShowcaseFeature) => {
     setSelectedFeature(id);
@@ -199,8 +220,8 @@ export const ClickUpInteractiveShowcase: React.FC = () => {
               );
             })}
 
-            {/* ACTIVATE PILL BUTTON */}
-            <div style={{ marginTop: '16px' }}>
+            {/* ACTIVATE & LAUNCH PILL BUTTONS */}
+            <div style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button
                 onClick={handleActivateNext}
                 style={{
@@ -209,9 +230,9 @@ export const ClickUpInteractiveShowcase: React.FC = () => {
                   gap: '8px',
                   backgroundColor: '#161824',
                   color: '#ffffff',
-                  padding: '9px 20px',
+                  padding: '9px 18px',
                   borderRadius: '100px',
-                  fontSize: '0.88rem',
+                  fontSize: '0.86rem',
                   fontWeight: 800,
                   boxShadow: '0 4px 14px rgba(22, 24, 36, 0.25)',
                   cursor: 'pointer',
@@ -222,6 +243,29 @@ export const ClickUpInteractiveShowcase: React.FC = () => {
               >
                 <span>Activate</span>
                 <ArrowRight size={14} />
+              </button>
+
+              <button
+                onClick={() => navigate(getWorkspaceUrlForFeature(selectedFeature))}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: '#7c3aed',
+                  color: '#ffffff',
+                  padding: '9px 18px',
+                  borderRadius: '100px',
+                  fontSize: '0.86rem',
+                  fontWeight: 800,
+                  boxShadow: '0 4px 14px rgba(124, 58, 237, 0.35)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                <span>Open in App</span>
+                <ExternalLink size={14} />
               </button>
             </div>
           </div>
@@ -272,7 +316,7 @@ export const ClickUpInteractiveShowcase: React.FC = () => {
                 border: '1px solid #e2e8f0',
                 borderRadius: '8px',
                 padding: '6px 14px',
-                width: '320px',
+                width: '280px',
                 justifyContent: 'space-between'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem', color: '#94a3b8' }}>
@@ -282,8 +326,30 @@ export const ClickUpInteractiveShowcase: React.FC = () => {
                 <BrainPetalLogo size={16} />
               </div>
 
-              {/* Avatar on Right */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Actions & Avatar on Right */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={() => navigate(getWorkspaceUrlForFeature(selectedFeature))}
+                  style={{
+                    backgroundColor: '#7c3aed',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '5px 12px',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 2px 6px rgba(124, 58, 237, 0.3)'
+                  }}
+                  title={`Open full ${selectedFeature} in Workspace`}
+                >
+                  <span>Launch in App</span>
+                  <ExternalLink size={12} />
+                </button>
+
                 <img
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60&h=60&fit=crop&crop=faces"
                   alt=""

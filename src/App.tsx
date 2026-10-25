@@ -18,6 +18,15 @@ export const App: React.FC = () => {
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/compare" element={<ComparePage />} />
       <Route path="/workspace" element={<WorkspacePage />} />
+      <Route path="/projects" element={<WorkspacePage />} />
+      <Route path="/sprints" element={<WorkspacePage />} />
+      <Route path="/agents" element={<WorkspacePage />} />
+      <Route path="/automations" element={<WorkspacePage />} />
+      <Route path="/calendar" element={<WorkspacePage />} />
+      <Route path="/scheduling" element={<WorkspacePage />} />
+      <Route path="/brain" element={<WorkspacePage />} />
+      <Route path="/dashboards" element={<WorkspacePage />} />
+      <Route path="/whiteboards" element={<WorkspacePage />} />
       <Route path="/time" element={<WorkspacePage />} />
       <Route path="/time/team" element={<WorkspacePage />} />
       <Route path="/time/approvals" element={<WorkspacePage />} />

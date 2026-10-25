@@ -18,6 +18,18 @@ export const MoreFlyout: React.FC<MoreFlyoutProps> = ({
 
   const modules = [
     {
+      id: 'projects',
+      name: 'Projects',
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7" height="9" rx="1.5" fill="#7c3aed" />
+          <rect x="14" y="3" width="7" height="5" rx="1.5" fill="#a855f7" />
+          <rect x="14" y="12" width="7" height="9" rx="1.5" fill="#6366f1" />
+          <rect x="3" y="16" width="7" height="5" rx="1.5" fill="#8b5cf6" />
+        </svg>
+      )
+    },
+    {
       id: 'spaces',
       name: 'Spaces',
       icon: (
@@ -97,6 +109,86 @@ export const MoreFlyout: React.FC<MoreFlyoutProps> = ({
           <path d="M6 6H3C3 8.5 4.5 9.5 6 10" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
           <path d="M18 6H21C21 8.5 19.5 9.5 18 10" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
           <circle cx="12" cy="8.5" r="2" fill="#fef3c7" />
+        </svg>
+      )
+    },
+    {
+      id: 'sprints',
+      name: 'Sprints',
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" fill="#ecfdf5" stroke="#10b981" strokeWidth="2" />
+          <path d="M12 7V12L15 14" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="12" cy="12" r="2" fill="#059669" />
+        </svg>
+      )
+    },
+    {
+      id: 'agents',
+      name: 'AI Agents',
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <rect x="4" y="5" width="16" height="14" rx="4" fill="url(#agentBgGrad)" />
+          <line x1="12" y1="2" x2="12" y2="5" stroke="#a855f7" strokeWidth="2" />
+          <circle cx="9" cy="11" r="1.5" fill="#ffffff" />
+          <circle cx="15" cy="11" r="1.5" fill="#ffffff" />
+          <path d="M9 15H15" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+          <defs>
+            <linearGradient id="agentBgGrad" x1="4" y1="5" x2="20" y2="19" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#7c3aed" />
+              <stop offset="1" stopColor="#ec4899" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    },
+    {
+      id: 'automations',
+      name: 'Automations',
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="url(#autoZapGrad)" />
+          <defs>
+            <linearGradient id="autoZapGrad" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#ec4899" />
+              <stop offset="0.5" stopColor="#a855f7" />
+              <stop offset="1" stopColor="#3b82f6" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
+    },
+    {
+      id: 'analytics',
+      name: 'Dashboards',
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="12" width="5" height="9" rx="1.5" fill="#a855f7" />
+          <rect x="10" y="5" width="5" height="16" rx="1.5" fill="#7c3aed" />
+          <rect x="17" y="9" width="5" height="12" rx="1.5" fill="#3b82f6" />
+        </svg>
+      )
+    },
+    {
+      id: 'whiteboard',
+      name: 'Whiteboards',
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="4" width="18" height="13" rx="3" fill="#fef3c7" stroke="#f59e0b" strokeWidth="1.8" />
+          <path d="M7 10L10 13L16 8" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M8 20L16 20" stroke="#b45309" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      )
+    },
+    {
+      id: 'scheduling',
+      name: 'Scheduling',
+      icon: (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="4" width="18" height="17" rx="3.5" fill="#f0fdf4" stroke="#16a34a" strokeWidth="1.8" />
+          <path d="M8 2.5V5.5M16 2.5V5.5" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" />
+          <path d="M3 9.5H21" stroke="#16a34a" strokeWidth="1.5" />
+          <path d="M8 14L11 17L16 12" stroke="#15803d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
     },

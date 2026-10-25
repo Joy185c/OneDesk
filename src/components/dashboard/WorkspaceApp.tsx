@@ -61,6 +61,9 @@ import { DocsView } from './DocsView';
 import { TaskDetailModal } from './TaskDetailModal';
 import { NewTaskModal } from './NewTaskModal';
 import { AutomationsSection } from '../AutomationsSection';
+import { AutomationsHubView } from './AutomationsHubView';
+import { SprintsView } from './SprintsView';
+import { AiAgentsView } from './AiAgentsView';
 import { supabaseService } from '../../services/supabaseService';
 import { PlannerView } from './PlannerView';
 import { ClickUpBrainView } from './ClickUpBrainView';
@@ -245,10 +248,31 @@ const ClickUpUpgradeRocket: React.FC = () => (
 export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) => {
   const { user, logout } = useAuth();
   
-  // Determine initial activeTab from URL pathname if present
-  const getInitialTab = (): 'overview' | 'inbox' | 'replies' | 'assigned_comments' | 'posts' | 'board' | 'list' | 'docs' | 'forms' | 'clips' | 'goals' | 'chat_launchpad' | 'spaces_overview' | 'automations' | 'analytics' | 'planner' | 'ai' | 'teams' | 'whiteboard' | 'timesheet' | 'channel' | 'dm' => {
+  // Determine initial activeTab from URL pathname or search params if present
+  const getInitialTab = (): 'overview' | 'inbox' | 'replies' | 'assigned_comments' | 'posts' | 'board' | 'list' | 'docs' | 'forms' | 'clips' | 'goals' | 'chat_launchpad' | 'spaces_overview' | 'automations' | 'analytics' | 'planner' | 'ai' | 'teams' | 'whiteboard' | 'timesheet' | 'channel' | 'dm' | 'sprints' | 'agents' => {
     if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get('tab');
+      if (tabParam) {
+        if (tabParam === 'sprints') return 'sprints';
+        if (tabParam === 'agents') return 'agents';
+        if (tabParam === 'automations') return 'automations';
+        if (tabParam === 'projects' || tabParam === 'board' || tabParam === 'list') return 'board';
+        if (tabParam === 'spaces' || tabParam === 'spaces_overview') return 'spaces_overview';
+        if (tabParam === 'chat') return 'chat_launchpad';
+        if (tabParam === 'brain' || tabParam === 'ai') return 'ai';
+        if (tabParam === 'time' || tabParam === 'timesheet') return 'timesheet';
+        if (tabParam === 'calendar' || tabParam === 'scheduling' || tabParam === 'planner') return 'planner';
+        if (tabParam === 'docs') return 'docs';
+        if (tabParam === 'whiteboards' || tabParam === 'whiteboard') return 'whiteboard';
+        if (tabParam === 'dashboards' || tabParam === 'analytics') return 'analytics';
+      }
+
       const p = window.location.pathname;
+      if (p.startsWith('/sprints')) return 'sprints';
+      if (p.startsWith('/agents')) return 'agents';
+      if (p.startsWith('/automations')) return 'automations';
+      if (p.startsWith('/projects')) return 'board';
       if (p.startsWith('/time')) return 'timesheet';
       if (p.includes('/dashboards')) return 'analytics';
       if (p.includes('/whiteboards')) return 'whiteboard';
@@ -259,8 +283,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
       if (p.startsWith('/chat')) return 'chat_launchpad';
       if (p.startsWith('/v/o/s')) return 'spaces_overview';
       if (p.includes('/teams')) return 'teams';
-      if (p.includes('/planner')) return 'planner';
-      if (p.includes('/ai')) return 'ai';
+      if (p.includes('/planner') || p.startsWith('/calendar') || p.startsWith('/scheduling')) return 'planner';
+      if (p.includes('/ai') || p.startsWith('/brain')) return 'ai';
     }
     return 'inbox';
   };
@@ -275,7 +299,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
   };
 
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'inbox' | 'replies' | 'assigned_comments' | 'posts' | 'board' | 'list' | 'docs' | 'forms' | 'clips' | 'goals' | 'chat_launchpad' | 'spaces_overview' | 'automations' | 'analytics' | 'planner' | 'ai' | 'teams' | 'whiteboard' | 'timesheet' | 'channel' | 'dm'
+    'overview' | 'inbox' | 'replies' | 'assigned_comments' | 'posts' | 'board' | 'list' | 'docs' | 'forms' | 'clips' | 'goals' | 'chat_launchpad' | 'spaces_overview' | 'automations' | 'analytics' | 'planner' | 'ai' | 'teams' | 'whiteboard' | 'timesheet' | 'channel' | 'dm' | 'sprints' | 'agents'
   >(getInitialTab);
 
   const [isAppCenterOpen, setIsAppCenterOpen] = useState(() => {
@@ -1024,8 +1048,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
           </div>
         </div>
 
-        {/* Inner Left Workspace Sidebar (Tree Navigation matching Screenshot) - Hidden on Planner, AI, Teams, Dashboards, Whiteboards, Timesheets, Docs, Forms, Clips, Goals, Chat Launchpad, Spaces Overview */}
-        {activeTab !== 'planner' && activeTab !== 'ai' && activeTab !== 'teams' && activeTab !== 'analytics' && activeTab !== 'whiteboard' && activeTab !== 'timesheet' && activeTab !== 'docs' && activeTab !== 'forms' && activeTab !== 'clips' && activeTab !== 'goals' && activeTab !== 'chat_launchpad' && activeTab !== 'spaces_overview' && (
+        {/* Inner Left Workspace Sidebar (Tree Navigation matching Screenshot) - Hidden on Planner, AI, Teams, Dashboards, Whiteboards, Timesheets, Docs, Forms, Clips, Goals, Chat Launchpad, Spaces Overview, Sprints, Agents, Automations */}
+        {activeTab !== 'planner' && activeTab !== 'ai' && activeTab !== 'teams' && activeTab !== 'analytics' && activeTab !== 'whiteboard' && activeTab !== 'timesheet' && activeTab !== 'docs' && activeTab !== 'forms' && activeTab !== 'clips' && activeTab !== 'goals' && activeTab !== 'chat_launchpad' && activeTab !== 'spaces_overview' && activeTab !== 'sprints' && activeTab !== 'agents' && activeTab !== 'automations' && (
           <aside style={{
           width: isSidebarCollapsed ? '48px' : '216px',
           backgroundColor: '#fafbfc',
@@ -2617,10 +2641,24 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
             </div>
           )}
 
-          {/* Automations View */}
+          {/* Automations Hub View */}
           {activeTab === 'automations' && (
-            <div style={{ padding: '20px 24px', flex: 1 }}>
-              <AutomationsSection />
+            <div style={{ flex: 1, display: 'flex', height: '100%', overflow: 'hidden' }}>
+              <AutomationsHubView />
+            </div>
+          )}
+
+          {/* Sprints Hub View */}
+          {activeTab === 'sprints' && (
+            <div style={{ flex: 1, display: 'flex', height: '100%', overflow: 'hidden' }}>
+              <SprintsView />
+            </div>
+          )}
+
+          {/* AI Super Agents View */}
+          {activeTab === 'agents' && (
+            <div style={{ flex: 1, display: 'flex', height: '100%', overflow: 'hidden' }}>
+              <AiAgentsView />
             </div>
           )}
 
@@ -2759,6 +2797,15 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
             setActiveTab('chat_launchpad');
           } else if (appId === 'docs') {
             setActiveTab('docs');
+          } else if (appId === 'sprints') {
+            setActiveTab('sprints');
+            showToast('Sprints 52 Agile Management active');
+          } else if (appId === 'agents') {
+            setActiveTab('agents');
+            showToast('ClickUp Super Agents Hub active');
+          } else if (appId === 'automations') {
+            setActiveTab('automations');
+            showToast('Automations Workflow Engine active');
           } else if (appId === 'forms') {
             setActiveTab('forms');
           } else if (appId === 'clips') {
@@ -2767,12 +2814,18 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
             setActiveTab('goals');
           } else if (appId === 'apps') {
             setIsAppCenterOpen(true);
-          } else if (appId === 'timesheets') {
+          } else if (appId === 'timesheets' || appId === 'time') {
             setActiveTab('timesheet');
-          } else if (appId === 'whiteboards') {
+          } else if (appId === 'whiteboards' || appId === 'whiteboard') {
             setActiveTab('whiteboard');
-          } else if (appId === 'dashboards') {
+          } else if (appId === 'dashboards' || appId === 'analytics') {
             setActiveTab('analytics');
+          } else if (appId === 'projects') {
+            setActiveTab('board');
+          } else if (appId === 'calendar' || appId === 'scheduling' || appId === 'planner') {
+            setActiveTab('planner');
+          } else if (appId === 'brain') {
+            setActiveTab('ai');
           } else {
             showToast(`App ${appId} opened`);
           }
