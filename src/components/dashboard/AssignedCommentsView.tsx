@@ -83,24 +83,24 @@ const INITIAL_ASSIGNED_COMMENTS: AssignedCommentItem[] = [
 
 export const AssignedCommentsView: React.FC<AssignedCommentsViewProps> = ({ tasks, onOpenTask }) => {
   const { user } = useAuth();
-  const isDemoUser = user?.id === 'u_joy_1';
+  const storageKey = `clickup_assigned_comments_${user?.id || 'guest'}`;
 
   const [comments, setComments] = useState<AssignedCommentItem[]>(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_assigned_comments_v1' : `clickup_assigned_comments_${user?.id || 'guest'}`;
       const saved = localStorage.getItem(storageKey);
-      if (saved) return JSON.parse(saved);
-      return isDemoUser ? INITIAL_ASSIGNED_COMMENTS : [];
+      if (saved) {
+        const parsed: AssignedCommentItem[] = JSON.parse(saved);
+        return parsed.filter(c => !c.assigner.includes('Sarah Miller'));
+      }
     } catch {}
-    return isDemoUser ? INITIAL_ASSIGNED_COMMENTS : [];
+    return [];
   });
 
   useEffect(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_assigned_comments_v1' : `clickup_assigned_comments_${user?.id || 'guest'}`;
       localStorage.setItem(storageKey, JSON.stringify(comments));
     } catch {}
-  }, [comments, user?.id, isDemoUser]);
+  }, [comments, storageKey]);
   const [filter, setFilter] = useState<'unresolved' | 'resolved'>('unresolved');
   const [searchQuery, setSearchQuery] = useState('');
 

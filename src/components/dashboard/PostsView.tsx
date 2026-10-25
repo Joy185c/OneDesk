@@ -75,9 +75,13 @@ const INITIAL_POSTS: PostItem[] = [
 
 export const PostsView: React.FC = () => {
   const { user } = useAuth();
-  const isDemoUser = user?.id === 'u_joy_1';
   const currentUserName = user?.name || 'Workspace Owner';
-  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'WO';
+  const userInitials = (() => {
+    if (!user?.name || !user.name.trim()) return 'WO';
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return user.name.trim().slice(0, 2).toUpperCase();
+  })();
   const workspaceName = user?.workspaceName || 'My Team Workspace';
 
   const defaultNewUserPosts: PostItem[] = [
@@ -96,22 +100,25 @@ export const PostsView: React.FC = () => {
     }
   ];
 
+  const storageKey = `clickup_posts_${user?.id || 'guest'}`;
+
   const [posts, setPosts] = useState<PostItem[]>(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_posts_v1' : `clickup_posts_${user?.id || 'guest'}`;
       const saved = localStorage.getItem(storageKey);
-      if (saved) return JSON.parse(saved);
-      return isDemoUser ? INITIAL_POSTS : defaultNewUserPosts;
+      if (saved) {
+        const parsed: PostItem[] = JSON.parse(saved);
+        return parsed.filter(p => !p.author.includes('Sarah Miller'));
+      }
+      return defaultNewUserPosts;
     } catch {}
-    return isDemoUser ? INITIAL_POSTS : defaultNewUserPosts;
+    return defaultNewUserPosts;
   });
 
   useEffect(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_posts_v1' : `clickup_posts_${user?.id || 'guest'}`;
       localStorage.setItem(storageKey, JSON.stringify(posts));
     } catch {}
-  }, [posts, user?.id, isDemoUser]);
+  }, [posts, storageKey]);
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');

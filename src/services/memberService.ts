@@ -203,10 +203,10 @@ export const memberService = {
       }
     } catch {}
 
-    // Default: general channel has all initial members, other channels have Joy & Alex
+    // Default: general channel has all initial members, other channels have owner & Alex
     const defaultIds = channelKey === 'general'
       ? allMembers.map(m => m.id)
-      : ['u-joy', 'u-alex'];
+      : ['u-owner', 'u-alex'];
 
     localStorage.setItem(CHANNEL_MEMBERS_KEY_PREFIX + channelKey, JSON.stringify(defaultIds));
     return allMembers.filter(m => defaultIds.includes(m.id));
@@ -215,7 +215,7 @@ export const memberService = {
   addMemberToChannel(channelKey: string, memberId: string): void {
     try {
       const stored = localStorage.getItem(CHANNEL_MEMBERS_KEY_PREFIX + channelKey);
-      const memberIds: string[] = stored ? JSON.parse(stored) : ['u-joy', 'u-alex'];
+      const memberIds: string[] = stored ? JSON.parse(stored) : ['u-owner', 'u-alex'];
       if (!memberIds.includes(memberId)) {
         memberIds.push(memberId);
         localStorage.setItem(CHANNEL_MEMBERS_KEY_PREFIX + channelKey, JSON.stringify(memberIds));

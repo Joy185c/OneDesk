@@ -72,7 +72,10 @@ export const JoinWorkspacePage: React.FC = () => {
         email: newMember.email,
         avatar: newMember.avatar,
         role: role === 'Admin' ? 'Workspace Admin' : role === 'Guest' ? 'Guest Collaborator' : 'Workspace Member',
-        workspaceName: workspaceName
+        workspaceName: workspaceName,
+        emailVerified: true,
+        emailVerifiedAt: new Date().toISOString(),
+        authProvider: newMember.email.endsWith('@gmail.com') ? 'gmail' : 'email'
       };
       localStorage.setItem('clickjoy_auth_user', JSON.stringify(customUser));
 

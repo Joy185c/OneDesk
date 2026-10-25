@@ -44,7 +44,7 @@ Welcome to the team handbook. Everything here is linked to our sprint roadmap.
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
       <Navbar
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         onGoToWorkspace={() => navigate('/workspace')}
       />
 
@@ -249,7 +249,7 @@ Welcome to the team handbook. Everything here is linked to our sprint roadmap.
 
       <Footer
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
       />
 
       <WaitlistModal

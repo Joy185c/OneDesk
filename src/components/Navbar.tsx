@@ -239,21 +239,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
 
         {/* Right Nav CTA Area */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button
-            onClick={() => onOpenAuth('signup')}
+          <Link
+            to="/signup"
             style={{
               fontSize: '0.92rem',
               fontWeight: 600,
               color: '#334155',
               padding: '8px 12px',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              textDecoration: 'none'
             }}
           >
             Get a Demo
-          </button>
+          </Link>
 
-          <button
-            onClick={() => onOpenAuth('signin')}
+          <Link
+            to="/login"
             style={{
               fontSize: '0.92rem',
               fontWeight: 600,
@@ -261,14 +262,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
               backgroundColor: '#f1f5f9',
               padding: '8px 16px',
               borderRadius: '8px',
-              border: '1px solid #e2e8f0'
+              border: '1px solid #e2e8f0',
+              textDecoration: 'none'
             }}
           >
             Login
-          </button>
+          </Link>
 
-          <button
-            onClick={() => onOpenAuth('signup')}
+          <Link
+            to="/signup"
             style={{
               fontSize: '0.92rem',
               fontWeight: 700,
@@ -276,11 +278,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
               backgroundColor: '#111827',
               padding: '8px 18px',
               borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              textDecoration: 'none'
             }}
           >
             Sign Up
-          </button>
+          </Link>
 
           {/* Quick Workspace Shortcut */}
           <Link
@@ -906,18 +909,36 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
           <Link to="/compare" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#1e293b' }}>
             Compare
           </Link>
-          <button 
-            onClick={() => { setMobileMenuOpen(false); onOpenAuth('signup'); }}
+          <Link 
+            to="/login"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{
+              padding: '10px',
+              backgroundColor: '#f1f5f9',
+              color: '#0f172a',
+              borderRadius: '8px',
+              fontWeight: 600,
+              textAlign: 'center',
+              textDecoration: 'none'
+            }}
+          >
+            Login
+          </Link>
+          <Link 
+            to="/signup"
+            onClick={() => setMobileMenuOpen(false)}
             style={{
               padding: '10px',
               backgroundColor: '#111827',
               color: '#ffffff',
               borderRadius: '8px',
-              fontWeight: 700
+              fontWeight: 700,
+              textAlign: 'center',
+              textDecoration: 'none'
             }}
           >
             Sign Up
-          </button>
+          </Link>
         </div>
       )}
     </header>

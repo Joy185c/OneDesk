@@ -112,26 +112,26 @@ export const InboxView: React.FC<InboxViewProps> = ({
   onOpenInvite 
 }) => {
   const { user } = useAuth();
-  const isDemoUser = user?.id === 'u_joy_1';
   const currentUserName = user?.name || 'You';
+  const storageKey = `clickup_inbox_notifs_${user?.id || 'guest'}`;
 
   const [activeTab, setActiveTab] = useState<'primary' | 'other' | 'later' | 'cleared'>('primary');
   const [notifications, setNotifications] = useState<InboxNotification[]>(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_inbox_notifs_v1' : `clickup_inbox_notifs_${user?.id || 'guest'}`;
       const saved = localStorage.getItem(storageKey);
-      if (saved) return JSON.parse(saved);
-      return isDemoUser ? INITIAL_NOTIFICATIONS : [];
+      if (saved) {
+        const parsed: InboxNotification[] = JSON.parse(saved);
+        return parsed.filter(n => !n.sender.includes('Sarah Miller'));
+      }
     } catch {}
-    return isDemoUser ? INITIAL_NOTIFICATIONS : [];
+    return [];
   });
 
   useEffect(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_inbox_notifs_v1' : `clickup_inbox_notifs_${user?.id || 'guest'}`;
       localStorage.setItem(storageKey, JSON.stringify(notifications));
     } catch {}
-  }, [notifications, user?.id, isDemoUser]);
+  }, [notifications, storageKey]);
   const [showNotificationList, setShowNotificationList] = useState<boolean>(false);
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'mentions'>('all');

@@ -28,7 +28,7 @@ export const TasksFeaturePage: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
       <Navbar
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         onGoToWorkspace={() => navigate('/workspace')}
       />
 
@@ -142,7 +142,7 @@ export const TasksFeaturePage: React.FC = () => {
 
       <Footer
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
       />
 
       <WaitlistModal

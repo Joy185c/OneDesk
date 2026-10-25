@@ -115,16 +115,21 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
   });
 
   const { user } = useAuth();
-  const isDemoUser = user?.id === 'u_joy_1';
   const currentUserName = user?.name || 'You';
-  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+  const userInitials = (() => {
+    if (!user?.name || !user.name.trim()) return 'ME';
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return user.name.trim().slice(0, 2).toUpperCase();
+  })();
 
   const tourStep = propTourStep !== undefined ? propTourStep : internalTourStep;
+
+  const storageKey = `clickup_time_entries_${user?.id || 'guest'}`;
 
   // Time Entries State
   const [entries, setEntries] = useState<TimeEntryItem[]>(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_time_entries_v1' : `clickup_time_entries_${user?.id || 'guest'}`;
       const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
@@ -134,8 +139,8 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
   // Active Timesheet Task Rows (for Timesheet Grid)
   const [timesheetTaskIds, setTimesheetTaskIds] = useState<string[]>(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_timesheet_tasks_v1' : `clickup_timesheet_tasks_${user?.id || 'guest'}`;
-      const saved = localStorage.getItem(storageKey);
+      const tasksKey = `clickup_timesheet_tasks_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(tasksKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [];
@@ -150,36 +155,34 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
       capacityHours: 40,
       dailyHours: [0, 0, 0, 0, 0, 0, 0]
     },
-    ...(isDemoUser ? [
-      {
-        id: 'mem-alex',
-        name: 'Alex Rivera',
-        initials: 'AR',
-        capacityHours: 40,
-        dailyHours: [0, 8, 8, 7.5, 8, 8, 0]
-      },
-      {
-        id: 'mem-sarah',
-        name: 'Sarah Chen',
-        initials: 'SC',
-        capacityHours: 40,
-        dailyHours: [0, 8, 8, 8, 8, 8, 0]
-      },
-      {
-        id: 'mem-emma',
-        name: 'Emma Davis',
-        initials: 'ED',
-        capacityHours: 40,
-        dailyHours: [0, 7, 8, 8, 8, 7, 0]
-      }
-    ] : [])
+    {
+      id: 'mem-alex',
+      name: 'Alex Rivera',
+      initials: 'AR',
+      capacityHours: 40,
+      dailyHours: [0, 8, 8, 7.5, 8, 8, 0]
+    },
+    {
+      id: 'mem-sarah',
+      name: 'Sarah Chen',
+      initials: 'SC',
+      capacityHours: 40,
+      dailyHours: [0, 8, 8, 8, 8, 8, 0]
+    },
+    {
+      id: 'mem-emma',
+      name: 'Emma Davis',
+      initials: 'ED',
+      capacityHours: 40,
+      dailyHours: [0, 7, 8, 8, 8, 7, 0]
+    }
   ]);
 
   // Approvals State (Screenshot 2: /time/approvals)
   const [approvalsList, setApprovalsList] = useState<TimesheetApprovalSubmission[]>(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_approvals_submissions_v1' : `clickup_approvals_submissions_${user?.id || 'guest'}`;
-      const saved = localStorage.getItem(storageKey);
+      const approvalsKey = `clickup_approvals_submissions_${user?.id || 'guest'}`;
+      const saved = localStorage.getItem(approvalsKey);
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [];
@@ -216,21 +219,23 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
   // Sync entries to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_time_entries_v1', JSON.stringify(entries));
+      localStorage.setItem(storageKey, JSON.stringify(entries));
     } catch (e) {}
-  }, [entries]);
+  }, [entries, storageKey]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_timesheet_tasks_v1', JSON.stringify(timesheetTaskIds));
+      const tasksKey = `clickup_timesheet_tasks_${user?.id || 'guest'}`;
+      localStorage.setItem(tasksKey, JSON.stringify(timesheetTaskIds));
     } catch (e) {}
-  }, [timesheetTaskIds]);
+  }, [timesheetTaskIds, user?.id]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('clickup_approvals_submissions_v1', JSON.stringify(approvalsList));
+      const approvalsKey = `clickup_approvals_submissions_${user?.id || 'guest'}`;
+      localStorage.setItem(approvalsKey, JSON.stringify(approvalsList));
     } catch (e) {}
-  }, [approvalsList]);
+  }, [approvalsList, user?.id]);
 
   // Update current user's daily hours in team sheet based on actual entries
   useEffect(() => {
@@ -904,7 +909,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                     zIndex: 60,
                     padding: '4px'
                   }}>
-                    {['All members', currentUserName, ...(isDemoUser ? ['Alex Rivera', 'Sarah Chen', 'Emma Davis'] : [])].map(m => (
+                    {['All members', currentUserName, 'Alex Rivera', 'Sarah Chen', 'Emma Davis'].map(m => (
                       <div
                         key={m}
                         onClick={() => {
@@ -2397,12 +2402,8 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                   }}
                 >
                   <option value={`${currentUserName} (Workspace Owner)`}>{currentUserName} (Workspace Owner)</option>
-                  {isDemoUser && (
-                    <>
-                      <option value="Alex Rivera (Engineering Lead)">Alex Rivera (Engineering Lead)</option>
-                      <option value="Sarah Chen (Product Lead)">Sarah Chen (Product Lead)</option>
-                    </>
-                  )}
+                  <option value="Alex Rivera (Engineering Lead)">Alex Rivera (Engineering Lead)</option>
+                  <option value="Sarah Chen (Product Lead)">Sarah Chen (Product Lead)</option>
                 </select>
               </div>
 

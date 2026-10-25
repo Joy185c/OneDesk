@@ -28,7 +28,7 @@ export const HomePage: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
       <Navbar
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         onGoToWorkspace={() => navigate('/workspace')}
       />
 
@@ -36,7 +36,7 @@ export const HomePage: React.FC = () => {
         {/* 1. HERO WITH CLICKUP 4.0, BRAIN², AND THE 12 FEATURE PILLS */}
         <Hero
           onOpenWaitlist={() => setWaitlistOpen(true)}
-          onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+          onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         />
 
         {/* 2. THE SIGNATURE 12-FEATURE INTERACTIVE SHOWCASE FROM YOUR SCREENSHOTS */}
@@ -66,7 +66,7 @@ export const HomePage: React.FC = () => {
         {/* 10. PRICING PLANS */}
         <PricingSection
           onOpenWaitlist={() => setWaitlistOpen(true)}
-          onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+          onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         />
 
         {/* 11. TESTIMONIALS & METRICS */}
@@ -75,7 +75,7 @@ export const HomePage: React.FC = () => {
 
       <Footer
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
       />
 
       <WaitlistModal

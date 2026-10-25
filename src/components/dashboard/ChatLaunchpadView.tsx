@@ -53,8 +53,10 @@ export const ChatLaunchpadView: React.FC<{
   onOpenDm?: (user: string) => void;
 }> = ({ onOpenChannel, onOpenDm }) => {
   const { user } = useAuth();
-  const currentUserName = user?.name || 'Joy Kumar Yuv';
-  const userInitials = currentUserName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'JY';
+  const currentUserName = user?.name || 'Workspace Member';
+  const userInitials = user?.name 
+    ? user.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() 
+    : 'ME';
 
   const [selectedRecipient, setSelectedRecipient] = useState<string>(`${currentUserName} (You)`);
   const [activePersonalTab, setActivePersonalTab] = useState<'chat' | 'calendar' | 'tasks'>('chat');
@@ -287,7 +289,7 @@ export const ChatLaunchpadView: React.FC<{
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1rem' }}>🤖</span>
+                <Bot size={15} color="#db2777" />
                 <span style={{ fontSize: '0.8rem', fontWeight: selectedRecipient === 'Meeting Agent' ? 700 : 500 }}>
                   Meeting Agent
                 </span>

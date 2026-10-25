@@ -312,7 +312,14 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
   const userRole = user?.role || 'Workspace Owner';
   const isAdmin = userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('owner');
   const workspaceName = user?.workspaceName || (user?.name ? `${user.name}'s Workspace` : 'My Workspace');
-  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+  const userInitials = (() => {
+    if (!user?.name || !user.name.trim()) return 'ME';
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return user.name.trim().slice(0, 2).toUpperCase();
+  })();
 
   const [activeChannel, setActiveChannel] = useState<string>('general');
   const [activeDmUser, setActiveDmUser] = useState({ name: `${currentUserName} — You`, initials: userInitials });
@@ -323,26 +330,46 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
     { id: 'brain', name: 'Brain', role: 'ClickUp Brain 3.0' }
   ]);
 
+  const channelsStorageKey = `clickjoy_channels_${user?.id || 'default'}`;
   const [channels, setChannels] = useState<Array<{ id: string; name: string; isGeneral?: boolean }>>(() => {
     try {
-      const saved = localStorage.getItem('clickjoy_workspace_channels_v2');
-      if (saved) return JSON.parse(saved);
+      const saved = localStorage.getItem(channelsStorageKey);
+      if (saved) {
+        const parsed: Array<{ id: string; name: string; isGeneral?: boolean }> = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Sanitize any legacy channel that hardcoded a specific user's name
+          return parsed.map(c => ({
+            ...c,
+            name: c.name.includes('Joy Kumar') ? 'General' : c.name
+          }));
+        }
+      }
     } catch {}
     return [
-      { id: 'general', name: `General - ${workspaceName}`, isGeneral: true },
+      { id: 'general', name: 'General', isGeneral: true },
       { id: 'welcome', name: 'Welcome', isGeneral: false }
     ];
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('clickjoy_workspace_channels_v2', JSON.stringify(channels));
+      localStorage.setItem(channelsStorageKey, JSON.stringify(channels));
     } catch {}
-  }, [channels]);
+  }, [channels, channelsStorageKey]);
 
   const [directMessages, setDirectMessages] = useState<Array<{ id: string; name: string; initials: string }>>([
     { id: user?.id || 'me', name: `${currentUserName} — You`, initials: userInitials }
   ]);
+
+  useEffect(() => {
+    setDirectMessages(prev => {
+      const others = prev.filter(dm => dm.id !== (user?.id || 'me') && !dm.name.endsWith('— You'));
+      return [
+        { id: user?.id || 'me', name: `${currentUserName} — You`, initials: userInitials },
+        ...others
+      ];
+    });
+  }, [currentUserName, userInitials, user?.id]);
 
   const [spacesList, setSpacesList] = useState<Array<{ id: string; name: string; folder: string; color: string; initial: string }>>([
     { id: 'space-crm', name: 'Space', folder: 'Sales CRM', color: '#7c3aed', initial: 'S' }
@@ -371,7 +398,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
   const [newChannelTopic, setNewChannelTopic] = useState('');
   const [newSpaceName, setNewSpaceName] = useState('');
   const [newSpaceColor, setNewSpaceColor] = useState('#7c3aed');
-  const [newDmTarget, setNewDmTarget] = useState('Sarah Miller');
+  const [newDmTarget, setNewDmTarget] = useState('');
   const [newDmInitialNote, setNewDmInitialNote] = useState('');
 
   const [currentPlan, setCurrentPlan] = useState('Free Forever');
@@ -778,7 +805,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 width: '28px',
                 height: '28px',
                 borderRadius: '50%',
-                backgroundColor: '#0f172a',
+                backgroundColor: '#7c3aed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -787,11 +814,16 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 fontWeight: 800,
                 cursor: 'pointer',
                 border: '1.5px solid #e2e8f0',
-                transition: 'transform 0.1s'
+                transition: 'transform 0.1s',
+                overflow: 'hidden'
               }}
               title={`${currentUserName} (Click to open profile & personal tools)`}
             >
-              {userInitials}
+              {user?.avatar ? (
+                <img src={user.avatar} alt={currentUserName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                userInitials
+              )}
               {/* Online Green Indicator Dot */}
               <span style={{
                 position: 'absolute',
@@ -812,7 +844,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               user={{
                 name: currentUserName,
                 email: user?.email || 'user@clickup.com',
-                initials: userInitials
+                initials: userInitials,
+                avatar: user?.avatar
               }}
               tasks={tasks}
               onAddTask={handleAddTask}

@@ -19,7 +19,7 @@ export const ComparePage: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
       <Navbar
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         onGoToWorkspace={() => navigate('/workspace')}
       />
 
@@ -27,13 +27,13 @@ export const ComparePage: React.FC = () => {
         <CompareSection onOpenWaitlist={() => setWaitlistOpen(true)} />
         <PricingSection
           onOpenWaitlist={() => setWaitlistOpen(true)}
-          onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+          onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         />
       </main>
 
       <Footer
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
       />
 
       <WaitlistModal

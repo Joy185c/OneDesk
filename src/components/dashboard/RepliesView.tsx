@@ -33,113 +33,45 @@ interface RepliesViewProps {
   onOpenTask: (task: TaskItem) => void;
 }
 
-const getInitialThreads = (currentUserName: string, userInitials: string): ReplyThread[] => [
-  {
-    id: 'th-1',
-    taskTitle: 'Enterprise License Agreement',
-    taskId: '1',
-    spaceName: 'Sales CRM',
-    isResolved: false,
-    messages: [
-      {
-        id: 'm-1',
-        author: 'Sarah Miller',
-        avatar: 'SM',
-        content: `Hi ${currentUserName.split(' ')[0]}, did the customer agree to the annual upfront payment schedule?`,
-        timestamp: 'Today at 10:14 AM'
-      },
-      {
-        id: 'm-2',
-        author: `${currentUserName} (You)`,
-        avatar: userInitials,
-        content: 'Yes, they approved the 1-year contract with NET 30 invoicing terms.',
-        timestamp: 'Today at 10:20 AM',
-        isCurrentUser: true
-      },
-      {
-        id: 'm-3',
-        author: 'Sarah Miller',
-        avatar: 'SM',
-        content: 'Awesome! Can you generate and attach the signed Docusign PDF?',
-        timestamp: 'Today at 10:28 AM'
-      }
-    ]
-  },
-  {
-    id: 'th-2',
-    taskTitle: 'Landing Page Hero 3.0',
-    taskId: '4',
-    spaceName: 'Product & Design',
-    isResolved: false,
-    messages: [
-      {
-        id: 'm-4',
-        author: 'Alex Chen',
-        avatar: 'AC',
-        content: 'The new glowing orb and gradient styling look fantastic. Should we test with 50% contrast on mobile?',
-        timestamp: 'Yesterday at 4:45 PM'
-      },
-      {
-        id: 'm-5',
-        author: `${currentUserName} (You)`,
-        avatar: userInitials,
-        content: 'Yes, I added responsive breakpoints for viewport width under 768px.',
-        timestamp: 'Yesterday at 5:12 PM',
-        isCurrentUser: true
-      }
-    ]
-  },
-  {
-    id: 'th-3',
-    taskTitle: 'Supabase Real-Time Sync & WebSocket',
-    taskId: '3',
-    spaceName: 'Engineering',
-    isResolved: true,
-    messages: [
-      {
-        id: 'm-6',
-        author: 'DevOps Bot',
-        avatar: 'DB',
-        content: 'Database migration complete: `workspaces`, `tasks`, `comments` synced.',
-        timestamp: 'Oct 23 at 2:00 PM'
-      },
-      {
-        id: 'm-7',
-        author: `${currentUserName} (You)`,
-        avatar: userInitials,
-        content: 'Verified realtime subscription channel is active with zero drops.',
-        timestamp: 'Oct 23 at 2:15 PM',
-        isCurrentUser: true
-      }
-    ]
-  }
-];
-
 export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) => {
   const { user } = useAuth();
-  const isDemoUser = user?.id === 'u_joy_1';
   const currentUserName = user?.name || 'You';
-  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+  const userInitials = (() => {
+    if (!user?.name || !user.name.trim()) return 'ME';
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return user.name.trim().slice(0, 2).toUpperCase();
+  })();
+
+  const storageKey = `clickup_replies_${user?.id || 'guest'}`;
 
   const [threads, setThreads] = useState<ReplyThread[]>(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_replies_v1' : `clickup_replies_${user?.id || 'guest'}`;
       const saved = localStorage.getItem(storageKey);
-      if (saved) return JSON.parse(saved);
-      return getInitialThreads(currentUserName, userInitials);
+      if (saved) {
+        const parsed: ReplyThread[] = JSON.parse(saved);
+        // Purge any stale legacy threads with hardcoded demo data
+        const clean = parsed.filter(t => 
+          !t.messages.some(m => m.author.includes('Sarah Miller') || m.content.includes('annual upfront payment schedule'))
+        );
+        return clean;
+      }
     } catch {}
-    return getInitialThreads(currentUserName, userInitials);
+    return [];
   });
 
   useEffect(() => {
     try {
-      const storageKey = isDemoUser ? 'clickup_replies_v1' : `clickup_replies_${user?.id || 'guest'}`;
       localStorage.setItem(storageKey, JSON.stringify(threads));
     } catch {}
-  }, [threads, user?.id, isDemoUser]);
+  }, [threads, storageKey]);
+
   const [activeFilter, setActiveFilter] = useState<'open' | 'resolved'>('open');
   const [replyInputMap, setReplyInputMap] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [isNewDiscussionOpen, setIsNewDiscussionOpen] = useState(false);
+  const [newTopicTitle, setNewTopicTitle] = useState('');
+  const [newTopicMessage, setNewTopicMessage] = useState('');
 
   const filteredThreads = threads.filter(th => {
     if (activeFilter === 'open' && th.isResolved) return false;
@@ -186,6 +118,31 @@ export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) =
     if (task) onOpenTask(task);
   };
 
+  const handleCreateNewDiscussion = () => {
+    if (!newTopicTitle.trim() || !newTopicMessage.trim()) return;
+    const newThread: ReplyThread = {
+      id: `th-${Date.now()}`,
+      taskTitle: newTopicTitle.trim(),
+      taskId: tasks[0]?.id || '1',
+      spaceName: 'General Discussion',
+      isResolved: false,
+      messages: [
+        {
+          id: `m-${Date.now()}`,
+          author: `${currentUserName} (You)`,
+          avatar: userInitials,
+          content: newTopicMessage.trim(),
+          timestamp: 'Just now',
+          isCurrentUser: true
+        }
+      ]
+    };
+    setThreads(prev => [newThread, ...prev]);
+    setNewTopicTitle('');
+    setNewTopicMessage('');
+    setIsNewDiscussionOpen(false);
+  };
+
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fafbfc', overflowY: 'auto' }}>
       {/* Header */}
@@ -217,37 +174,59 @@ export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) =
               Replies & Mentions
             </h1>
             <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>
-              All discussion threads and conversation replies involving {currentUserName}.
+              {threads.length > 0
+                ? `${threads.length} active discussion thread${threads.length > 1 ? 's' : ''} for ${currentUserName}.`
+                : `No active discussion threads for ${currentUserName}.`}
             </p>
           </div>
         </div>
 
-        {/* Search */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          backgroundColor: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          padding: '6px 12px',
-          width: '240px'
-        }}>
-          <Search size={14} color="#94a3b8" />
-          <input
-            type="text"
-            placeholder="Search reply threads..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+        {/* Action and Search */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            padding: '6px 12px',
+            width: '220px'
+          }}>
+            <Search size={14} color="#94a3b8" />
+            <input
+              type="text"
+              placeholder="Search reply threads..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                outline: 'none',
+                fontSize: '0.8rem',
+                color: '#1e293b',
+                width: '100%'
+              }}
+            />
+          </div>
+          <button
+            onClick={() => setIsNewDiscussionOpen(true)}
             style={{
-              backgroundColor: 'transparent',
+              backgroundColor: '#7c3aed',
+              color: '#ffffff',
               border: 'none',
-              outline: 'none',
+              borderRadius: '8px',
+              padding: '7px 14px',
               fontSize: '0.8rem',
-              color: '#1e293b',
-              width: '100%'
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
-          />
+          >
+            <span>+ New Thread</span>
+          </button>
         </div>
       </div>
 
@@ -296,19 +275,69 @@ export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) =
       <div style={{ flex: 1, padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '18px', maxWidth: '1000px' }}>
         {filteredThreads.length === 0 ? (
           <div style={{
-            padding: '60px 20px',
+            padding: '65px 24px',
             textAlign: 'center',
             backgroundColor: '#ffffff',
-            borderRadius: '14px',
-            border: '1px dashed #cbd5e1'
+            borderRadius: '16px',
+            border: '1px dashed #cbd5e1',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)'
           }}>
-            <MessageSquare size={36} color="#94a3b8" style={{ margin: '0 auto 12px' }} />
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>
-              No {activeFilter} reply threads found
+            <div style={{
+              width: '54px',
+              height: '54px',
+              borderRadius: '50%',
+              backgroundColor: '#f5f3ff',
+              color: '#7c3aed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 14px'
+            }}>
+              <MessageSquare size={24} />
+            </div>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+              You're all caught up!
             </h3>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
-              When colleagues mention or reply to your tasks, they will appear here.
+            <p style={{ margin: '0 auto 20px', fontSize: '0.86rem', color: '#64748b', maxWidth: '380px', lineHeight: 1.5 }}>
+              When teammates mention you in comments or reply to your tasks, those discussion threads will appear right here.
             </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+              <button
+                onClick={() => setIsNewDiscussionOpen(true)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#7c3aed',
+                  color: '#ffffff',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>+ Start Discussion</span>
+              </button>
+              {tasks.length > 0 && (
+                <button
+                  onClick={() => onOpenTask(tasks[0])}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                    backgroundColor: '#ffffff',
+                    color: '#475569',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  View Tasks
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           filteredThreads.map(th => (
@@ -483,6 +512,140 @@ export const RepliesView: React.FC<RepliesViewProps> = ({ tasks, onOpenTask }) =
           ))
         )}
       </div>
+      {/* New Discussion Modal */}
+      {isNewDiscussionOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            maxWidth: '480px',
+            width: '100%',
+            padding: '24px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.25)',
+            border: '1px solid #e2e8f0',
+            animation: 'fadeIn 0.2s ease'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  backgroundColor: '#f5f3ff',
+                  color: '#7c3aed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <MessageSquare size={16} />
+                </div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                  Start New Discussion
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsNewDiscussionOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: '#94a3b8' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  Topic / Task Subject
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Q4 Growth Strategy, Project Onboarding"
+                  value={newTopicTitle}
+                  onChange={e => setNewTopicTitle(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.84rem',
+                    color: '#0f172a',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  Your Initial Message / Question
+                </label>
+                <textarea
+                  placeholder="Type your message or mention a teammate..."
+                  rows={4}
+                  value={newTopicMessage}
+                  onChange={e => setNewTopicMessage(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.84rem',
+                    color: '#0f172a',
+                    fontFamily: 'inherit',
+                    resize: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
+                <button
+                  onClick={() => setIsNewDiscussionOpen(false)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #e2e8f0',
+                    backgroundColor: '#ffffff',
+                    color: '#64748b',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateNewDiscussion}
+                  disabled={!newTopicTitle.trim() || !newTopicMessage.trim()}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: (!newTopicTitle.trim() || !newTopicMessage.trim()) ? '#c4b5fd' : '#7c3aed',
+                    color: '#ffffff',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: (!newTopicTitle.trim() || !newTopicMessage.trim()) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Create Discussion
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

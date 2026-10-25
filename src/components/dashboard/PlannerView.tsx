@@ -304,22 +304,23 @@ const INITIAL_PRIORITIES: PriorityItem[] = [
   }
 ];
 
-const TEAMMATES: Teammate[] = [
-  { id: 'tm-1', name: 'Joy Sarkar (You)', email: 'joy185c@gmail.com', avatar: 'JS', color: '#7c3aed', status: 'available', role: 'Full Stack Lead' },
-  { id: 'tm-2', name: 'Junaed Al Mugdho', email: 'junaedalmugdho@gmail.com', avatar: '👓', color: '#2563eb', status: 'available', role: 'Lead Product Designer' },
-  { id: 'tm-3', name: 'Alex Rivera', email: 'alex.rivera@clickup.team', avatar: 'AR', color: '#059669', status: 'available', role: 'Product Manager' },
-  { id: 'tm-4', name: 'Sarah Chen', email: 'sarah.chen@clickup.team', avatar: 'SC', color: '#d97706', status: 'in_meeting', role: 'QA & Test Engineer' },
-  { id: 'tm-5', name: 'David Kim', email: 'david.kim@clickup.team', avatar: 'DK', color: '#dc2626', status: 'offline', role: 'DevOps & Cloud Architect' }
-];
-
-// ==========================================
-// MAIN COMPONENT
-// ==========================================
-
 export const PlannerView: React.FC = () => {
   const { user } = useAuth();
   const currentUserName = user?.name || 'Workspace User';
-  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'WU';
+  const userInitials = (() => {
+    if (!user?.name || !user.name.trim()) return 'WU';
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return user.name.trim().slice(0, 2).toUpperCase();
+  })();
+
+  const TEAMMATES: Teammate[] = [
+    { id: 'tm-1', name: `${currentUserName} (You)`, email: user?.email || 'user@workspace.local', avatar: userInitials, color: '#7c3aed', status: 'available', role: 'Workspace Owner' },
+    { id: 'tm-2', name: 'Junaed Al Mugdho', email: 'junaedalmugdho@gmail.com', avatar: '👓', color: '#2563eb', status: 'available', role: 'Lead Product Designer' },
+    { id: 'tm-3', name: 'Alex Rivera', email: 'alex.rivera@clickup.team', avatar: 'AR', color: '#059669', status: 'available', role: 'Product Manager' },
+    { id: 'tm-4', name: 'Sarah Chen', email: 'sarah.chen@clickup.team', avatar: 'SC', color: '#d97706', status: 'in_meeting', role: 'QA & Test Engineer' },
+    { id: 'tm-5', name: 'David Kim', email: 'david.kim@clickup.team', avatar: 'DK', color: '#dc2626', status: 'offline', role: 'DevOps & Cloud Architect' }
+  ];
 
   // Calendar Connection State (Defaults to true so user immediately accesses Planner, persisted)
   const [isConnected, setIsConnected] = useState<boolean>(() => {
@@ -389,7 +390,7 @@ export const PlannerView: React.FC = () => {
   const [eventFormColor, setEventFormColor] = useState<string>('#7c3aed');
   const [eventFormWithMeet, setEventFormWithMeet] = useState<boolean>(true);
   const [eventFormDescription, setEventFormDescription] = useState<string>('');
-  const [eventFormAttendee, setEventFormAttendee] = useState<string>('Joy Sarkar');
+  const [eventFormAttendee, setEventFormAttendee] = useState<string>(currentUserName);
 
   // Modal State for Adding Priority Task
   const [isPriorityModalOpen, setIsPriorityModalOpen] = useState<boolean>(false);
@@ -503,7 +504,7 @@ export const PlannerView: React.FC = () => {
     setEventFormColor('#7c3aed');
     setEventFormWithMeet(true);
     setEventFormDescription('');
-    setEventFormAttendee('Joy Sarkar');
+    setEventFormAttendee(currentUserName);
     setIsEventModalOpen(true);
   };
 
@@ -518,7 +519,7 @@ export const PlannerView: React.FC = () => {
     setEventFormColor(evt.color);
     setEventFormWithMeet(!!evt.meetingUrl);
     setEventFormDescription(evt.description || '');
-    setEventFormAttendee(evt.attendees?.[0] || 'Joy Sarkar');
+    setEventFormAttendee(evt.attendees?.[0] || currentUserName);
     setIsEventModalOpen(true);
   };
 
@@ -631,7 +632,7 @@ export const PlannerView: React.FC = () => {
       borderColor: '#e9d5ff',
       textColor: '#6b21a8',
       description: `Time-blocked for priority task: ${prio.title}`,
-      attendees: ['Joy Sarkar']
+      attendees: [currentUserName]
     };
 
     setEvents(prev => [...prev, newEvt]);
@@ -657,7 +658,7 @@ export const PlannerView: React.FC = () => {
       textColor: '#1e40af',
       meetingUrl: `https://meet.google.com/cup-${Math.random().toString(36).substring(2, 7)}`,
       description: `1-on-1 team sync with ${bookingTeammate.name} (${bookingTeammate.role})`,
-      attendees: ['Joy Sarkar', bookingTeammate.name]
+      attendees: [currentUserName, bookingTeammate.name]
     };
 
     setEvents(prev => [...prev, newEvt]);
@@ -2770,11 +2771,11 @@ export const PlannerView: React.FC = () => {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 10px', borderRadius: '6px', backgroundColor: '#f8fafc' }}>
                     <div style={{ width: '26px', height: '26px', borderRadius: '50%', backgroundColor: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem', fontWeight: 700 }}>
-                      J
+                      {userInitials[0] || 'U'}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e1f21' }}>Joy Sarkar</span>{' '}
-                      <span style={{ fontSize: '0.78rem', color: '#64748b' }}>joy185c@gmail.com</span>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e1f21' }}>{currentUserName}</span>{' '}
+                      <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{user?.email || 'user@workspace.local'}</span>
                     </div>
                     <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700 }}>● Synced</span>
                   </div>

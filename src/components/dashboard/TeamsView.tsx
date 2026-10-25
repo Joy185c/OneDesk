@@ -58,7 +58,12 @@ import {
   MessageSquare,
   Send,
   Mic,
-  Paperclip
+  Paperclip,
+  Columns,
+  GitFork,
+  Link2,
+  User,
+  Folder
 } from 'lucide-react';
 import { TaskItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -243,40 +248,6 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
           blockers: 'None'
         }
       ]
-    },
-    {
-      id: 'team-joyt',
-      name: 'joyt',
-      handle: '@joyt',
-      color: '#7c3aed',
-      initial: 'J',
-      description: '',
-      createdAt: '2026-10-25T10:28:00Z',
-      members: [currentUserMember],
-      bookmarks: [],
-      feed: [
-        {
-          id: 'f-joyt-1',
-          actor: currentUserName,
-          action: 'created team',
-          target: 'joyt',
-          time: 'Yesterday at 10:28 AM',
-          type: 'create'
-        }
-      ],
-      priorities: [
-        {
-          id: 'p-joyt-1',
-          memberId: currentUserMember.id,
-          memberName: currentUserName,
-          order: 1,
-          title: 'Send follow-up email',
-          completed: false,
-          priority: 'Normal',
-          dueDate: 'Today'
-        }
-      ],
-      standups: []
     }
   ], [currentUserMember, currentUserName, userInitials]);
 
@@ -284,7 +255,10 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
   const [teams, setTeams] = useState<TeamGroup[]>(() => {
     try {
       const saved = localStorage.getItem('clickup_teams_v3');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: TeamGroup[] = JSON.parse(saved);
+        return parsed.filter(t => t.id !== 'team-joyt' && !t.name.toLowerCase().includes('joyt'));
+      }
     } catch (e) {
       console.error(e);
     }
@@ -1291,16 +1265,17 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
               flexShrink: 0
             }}>
               {[
-                { key: 'overview', label: 'Overview', icon: 'ℹ️' },
-                { key: 'analytics', label: 'Analytics', icon: '📊' },
-                { key: 'priorities', label: 'Priorities', icon: '🎯' },
-                { key: 'team', label: 'Team', icon: '👥' },
-                { key: 'team_chart', label: 'Team Chart', icon: '🗺️' },
-                { key: 'standup', label: 'StandUp', icon: '☕' },
-                { key: 'workload', label: 'Workload', icon: '📊' },
-                { key: 'timesheet', label: 'Timesheet', icon: '⏱️' }
+                { key: 'overview', label: 'Overview', icon: Info, bg: '#475569' },
+                { key: 'analytics', label: 'Analytics', icon: BarChart2, bg: '#6366f1' },
+                { key: 'priorities', label: 'Priorities', icon: Flag, bg: '#ef4444' },
+                { key: 'team', label: 'Team', icon: Users, bg: '#a855f7' },
+                { key: 'team_chart', label: 'Team Chart', icon: Network, bg: '#10b981' },
+                { key: 'standup', label: 'StandUp', icon: Sparkles, bg: '#7c3aed' },
+                { key: 'workload', label: 'Workload', icon: Columns, bg: '#0d9488' },
+                { key: 'timesheet', label: 'Timesheet', icon: Clock, bg: '#ea580c' }
               ].map(tab => {
                 const isActive = activeSubtab === tab.key;
+                const IconComponent = tab.icon;
                 return (
                   <div
                     key={tab.key}
@@ -1308,15 +1283,29 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                     style={{
                       padding: '12px 2px',
                       cursor: 'pointer',
-                      color: isActive ? '#0f172a' : '#64748b',
+                      color: isActive ? '#0f172a' : '#475569',
+                      fontWeight: isActive ? 700 : 600,
                       borderBottom: isActive ? '2px solid #2563eb' : '2px solid transparent',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      whiteSpace: 'nowrap'
+                      gap: '8px',
+                      whiteSpace: 'nowrap',
+                      transition: 'color 0.15s ease'
                     }}
                   >
-                    <span>{tab.icon}</span>
+                    <div style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '4px',
+                      backgroundColor: tab.bg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.06)'
+                    }}>
+                      <IconComponent size={11} color="#ffffff" strokeWidth={2.4} />
+                    </div>
                     <span>{tab.label}</span>
                   </div>
                 );
@@ -2690,7 +2679,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                       backgroundColor: '#ffffff'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#64748b' }}>📂</span>
+                        <Folder size={15} color="#64748b" />
                         <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>
                           Sales CRM
                         </span>
@@ -2937,23 +2926,28 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                           {[
-                            { name: 'Company Name', icon: 'T', val: '—' },
-                            { name: 'Contact Email', icon: '✉️', val: '—' },
-                            { name: 'Deal Summary', icon: '🔗', val: '—' },
-                            { name: 'Expected Value', icon: '$', val: '$' },
-                            { name: 'Lead Owner', icon: '👤', val: '—' },
-                            { name: 'Next Follow-up', icon: '📅', val: '—' }
-                          ].map(f => (
-                            <div key={f.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f8fafc' }}>
-                              <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ width: '16px', textAlign: 'center', fontWeight: 700 }}>{f.icon}</span>
-                                <span>{f.name}</span>
-                              </span>
-                              <span style={{ fontSize: '0.78rem', color: '#94a3b8', cursor: 'pointer' }}>
-                                {f.val}
-                              </span>
-                            </div>
-                          ))}
+                            { name: 'Company Name', icon: null, textIcon: 'T', val: '—' },
+                            { name: 'Contact Email', icon: Mail, val: '—' },
+                            { name: 'Deal Summary', icon: Link2, val: '—' },
+                            { name: 'Expected Value', icon: null, textIcon: '$', val: '$' },
+                            { name: 'Lead Owner', icon: User, val: '—' },
+                            { name: 'Next Follow-up', icon: Calendar, val: '—' }
+                          ].map(f => {
+                            const FieldIcon = f.icon;
+                            return (
+                              <div key={f.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f8fafc' }}>
+                                <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ width: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                                    {FieldIcon ? <FieldIcon size={13} color="#94a3b8" /> : f.textIcon}
+                                  </span>
+                                  <span>{f.name}</span>
+                                </span>
+                                <span style={{ fontSize: '0.78rem', color: '#94a3b8', cursor: 'pointer' }}>
+                                  {f.val}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 
@@ -3569,7 +3563,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                                     margin: '0 4px'
                                   }}
                                 >
-                                  <span>🟡</span>
+                                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#eab308', display: 'inline-block' }} />
                                   <span>Enterprise Cloud Migration Deal</span>
                                   <span style={{ backgroundColor: '#fef08a', padding: '0 4px', borderRadius: '3px', fontSize: '0.66rem' }}>QUALIFIED</span>
                                 </span>
@@ -3618,7 +3612,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                                     margin: '0 4px'
                                   }}
                                 >
-                                  <span>🟢</span>
+                                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }} />
                                   <span>Q4 Server Hardware Refresh</span>
                                   <span style={{ backgroundColor: '#bbf7d0', padding: '0 4px', borderRadius: '3px', fontSize: '0.66rem' }}>WON</span>
                                 </span>
@@ -3667,7 +3661,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                                     margin: '0 4px'
                                   }}
                                 >
-                                  <span>🟣</span>
+                                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#a855f7', display: 'inline-block' }} />
                                   <span>Software Licensing Expansion</span>
                                   <span style={{ backgroundColor: '#e9d5ff', padding: '0 4px', borderRadius: '3px', fontSize: '0.66rem' }}>PROPOSAL</span>
                                 </span>
@@ -3716,7 +3710,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                                     margin: '0 4px'
                                   }}
                                 >
-                                  <span>🔘</span>
+                                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#64748b', display: 'inline-block' }} />
                                   <span>Inbound Website Inquiry</span>
                                   <span style={{ backgroundColor: '#e2e8f0', padding: '0 4px', borderRadius: '3px', fontSize: '0.66rem' }}>NEW LEAD</span>
                                 </span>
@@ -3774,8 +3768,13 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                                   color: reply.role === 'user' ? '#0f172a' : '#5b21b6',
                                   lineHeight: 1.45
                                 }}>
-                                  <span style={{ fontWeight: 700, display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>
-                                    {reply.role === 'user' ? currentUserName : '🌸 ClickUp Brain'}
+                                  <span style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', marginBottom: '2px' }}>
+                                    {reply.role === 'user' ? currentUserName : (
+                                      <>
+                                        <Sparkles size={11} color="#7c3aed" />
+                                        <span>ClickUp Brain</span>
+                                      </>
+                                    )}
                                   </span>
                                   {reply.text}
                                 </div>
@@ -3806,7 +3805,10 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                         }}>
                           <div>
                             <div>You're using standard models</div>
-                            <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Get premium models 🌸</div>
+                            <div style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span>Get premium models</span>
+                              <Sparkles size={11} color="#db2777" />
+                            </div>
                           </div>
                           <button
                             onClick={onOpenUpgradeModal}
@@ -3896,8 +3898,9 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer' }}>
-                                🌸 Max ▾
+                              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                <Sparkles size={11} color="#db2777" />
+                                <span>Max ▾</span>
                               </span>
                               <button
                                 type="button"

@@ -19,21 +19,21 @@ export const PricingPage: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
       <Navbar
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         onGoToWorkspace={() => navigate('/workspace')}
       />
 
       <main style={{ flex: 1, paddingTop: '30px' }}>
         <PricingSection
           onOpenWaitlist={() => setWaitlistOpen(true)}
-          onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+          onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
         />
         <Testimonials />
       </main>
 
       <Footer
         onOpenWaitlist={() => setWaitlistOpen(true)}
-        onOpenAuth={(mode) => setAuthModal({ open: true, mode })}
+        onOpenAuth={(mode) => navigate(mode === 'signin' ? '/login' : '/signup')}
       />
 
       <WaitlistModal

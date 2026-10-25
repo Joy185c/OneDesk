@@ -67,7 +67,7 @@ const INITIAL_SPRINT_TASKS: SprintTask[] = [
     points: 8,
     status: 'IN_PROGRESS',
     priority: 'Urgent',
-    assignee: { name: 'Joy Sarkar', avatar: 'JS', color: '#7c3aed' },
+    assignee: { name: 'Staff Engineer', avatar: 'SE', color: '#7c3aed' },
     dueDate: 'Jul 22'
   },
   {
@@ -76,7 +76,7 @@ const INITIAL_SPRINT_TASKS: SprintTask[] = [
     points: 5,
     status: 'IN_PROGRESS',
     priority: 'High',
-    assignee: { name: 'Joy Sarkar', avatar: 'JS', color: '#7c3aed' },
+    assignee: { name: 'Staff Engineer', avatar: 'SE', color: '#7c3aed' },
     dueDate: 'Jul 21'
   },
   {
@@ -103,7 +103,7 @@ const INITIAL_SPRINT_TASKS: SprintTask[] = [
     points: 8,
     status: 'DONE',
     priority: 'Urgent',
-    assignee: { name: 'Joy Sarkar', avatar: 'JS', color: '#7c3aed' },
+    assignee: { name: 'Staff Engineer', avatar: 'SE', color: '#7c3aed' },
     dueDate: 'Jun 28'
   },
   {
@@ -119,17 +119,22 @@ const INITIAL_SPRINT_TASKS: SprintTask[] = [
 
 export const SprintsView: React.FC = () => {
   const { user } = useAuth();
-  const isDemoUser = user?.id === 'u_joy_1';
   const currentUserName = user?.name || 'You';
-  const userInitials = user?.name ? user.name.slice(0, 2).toUpperCase() : 'ME';
+  const userInitials = (() => {
+    if (!user?.name || !user.name.trim()) return 'ME';
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return user.name.trim().slice(0, 2).toUpperCase();
+  })();
+
+  const storageKey = `clickup_sprint_tasks_${user?.id || 'guest'}`;
 
   const [tasks, setTasks] = useState<SprintTask[]>(() => {
-    const storageKey = isDemoUser ? 'clickup_sprint_tasks_v1' : `clickup_sprint_tasks_${user?.id || 'guest'}`;
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* ignore */ }
     }
-    return isDemoUser ? INITIAL_SPRINT_TASKS : [];
+    return INITIAL_SPRINT_TASKS;
   });
 
   const [activeSprint, setActiveSprint] = useState<string>('sprint-52');
@@ -141,9 +146,8 @@ export const SprintsView: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const storageKey = isDemoUser ? 'clickup_sprint_tasks_v1' : `clickup_sprint_tasks_${user?.id || 'guest'}`;
     localStorage.setItem(storageKey, JSON.stringify(tasks));
-  }, [tasks, user?.id, isDemoUser]);
+  }, [tasks, storageKey]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
