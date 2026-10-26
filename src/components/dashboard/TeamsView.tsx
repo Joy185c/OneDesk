@@ -60,6 +60,7 @@ export interface TeamMember {
   status: 'Online' | 'Away' | 'Offline';
   avatarBg: string;
   initials: string;
+  avatar?: string;
   isYou?: boolean;
 }
 
@@ -146,8 +147,9 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
     status: 'Online',
     avatarBg: '#059669',
     initials: userInitials,
+    avatar: user?.avatar,
     isYou: true
-  }), [user?.id, currentUserName, user?.email, user?.role, userInitials]);
+  }), [user?.id, currentUserName, user?.email, user?.role, userInitials, user?.avatar]);
 
   const availableMembers: TeamMember[] = useMemo(() => [
     currentUserMember,
@@ -1669,10 +1671,15 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                             justifyContent: 'center',
                             fontWeight: 800,
                             fontSize: '0.76rem',
-                            position: 'relative'
+                            position: 'relative',
+                            overflow: 'hidden'
                           }}
                         >
-                          {m.initials}
+                          {m.avatar || (m.isYou && user?.avatar) ? (
+                            <img src={m.avatar || user?.avatar} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            m.initials
+                          )}
                           <div style={{
                             position: 'absolute',
                             bottom: '-1px',
@@ -1832,9 +1839,14 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                             fontWeight: 800,
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            overflow: 'hidden'
                           }}>
-                            {m.initials}
+                            {m.avatar || (m.isYou && user?.avatar) ? (
+                              <img src={m.avatar || user?.avatar} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              m.initials
+                            )}
                           </div>
                           <div>
                             <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>{m.name}</div>

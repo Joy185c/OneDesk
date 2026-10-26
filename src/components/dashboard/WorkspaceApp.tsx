@@ -659,9 +659,10 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               justifyContent: 'center',
               color: '#ffffff',
               fontSize: '0.76rem',
-              fontWeight: 800
+              fontWeight: 800,
+              overflow: 'hidden'
             }}>
-              J
+              {workspaceName ? workspaceName.trim()[0].toUpperCase() : 'W'}
             </div>
             <span style={{ fontWeight: 700, fontSize: '0.86rem', color: '#1e293b' }}>
               {workspaceName}
@@ -2029,9 +2030,25 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 onMouseEnter={e => { if (activeTab !== 'dm' || !activeDmUser.name.includes(currentUserName)) e.currentTarget.style.backgroundColor = '#f8fafc'; }}
                 onMouseLeave={e => { if (activeTab !== 'dm' || !activeDmUser.name.includes(currentUserName)) e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
-                <div style={{ position: 'relative', width: '18px', height: '18px', flexShrink: 0 }}>
-                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#1e293b', color: '#14b8a6', fontSize: '0.66rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                    {userInitials[0] || 'U'}
+                <div style={{ position: 'relative', width: '20px', height: '20px', flexShrink: 0 }}>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    backgroundColor: '#1e293b',
+                    color: '#14b8a6',
+                    fontSize: '0.66rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    overflow: 'hidden'
+                  }}>
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={currentUserName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      userInitials[0] || 'U'
+                    )}
                   </div>
                   <div style={{ position: 'absolute', bottom: '-1px', right: '-1px', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e', border: '1px solid #ffffff' }} />
                 </div>
@@ -4072,9 +4089,14 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   fontWeight: 800,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  overflow: 'hidden'
                 }}>
-                  {userInitials[0] || 'U'}
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={currentUserName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    userInitials[0] || 'U'
+                  )}
                 </div>
                 <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
                   {currentUserName}

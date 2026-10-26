@@ -316,7 +316,7 @@ export const PlannerView: React.FC = () => {
   })();
 
   const TEAMMATES: Teammate[] = [
-    { id: 'tm-1', name: `${currentUserName} (You)`, email: user?.email || 'user@workspace.local', avatar: userInitials, color: '#176B50', status: 'available', role: 'Workspace Owner' },
+    { id: 'tm-1', name: `${currentUserName} (You)`, email: user?.email || 'user@workspace.local', avatar: user?.avatar || userInitials, color: '#176B50', status: 'available', role: 'Workspace Owner' },
     { id: 'tm-2', name: 'Junaed Al Mugdho', email: 'junaedalmugdho@gmail.com', avatar: '👓', color: '#2563eb', status: 'available', role: 'Lead Product Designer' },
     { id: 'tm-3', name: 'Alex Rivera', email: 'alex.rivera@clickup.team', avatar: 'AR', color: '#059669', status: 'available', role: 'Product Manager' },
     { id: 'tm-4', name: 'Sarah Chen', email: 'sarah.chen@clickup.team', avatar: 'SC', color: '#d97706', status: 'in_meeting', role: 'QA & Test Engineer' },
@@ -435,7 +435,7 @@ export const PlannerView: React.FC = () => {
 
   // Google Accounts List
   const googleAccounts = [
-    { name: currentUserName, email: user?.email || 'user@work.com', avatar: userInitials, signedOut: false },
+    { name: currentUserName, email: user?.email || 'user@work.com', avatar: user?.avatar || userInitials, signedOut: false },
     { name: 'Sarah Miller', email: 'sarah.miller@clickup.team', avatar: 'SM', signedOut: false },
     { name: 'Alex Rivera', email: 'alex.rivera@clickup.team', avatar: 'AR', signedOut: false },
     { name: 'Priya Gupta', email: 'priya.gupta@clickup.team', avatar: 'PG', signedOut: true }
@@ -1458,9 +1458,14 @@ export const PlannerView: React.FC = () => {
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontSize: '0.68rem',
-                          fontWeight: 700
+                          fontWeight: 700,
+                          overflow: 'hidden'
                         }}>
-                          {tm.avatar}
+                          {tm.avatar?.startsWith('http') || tm.avatar?.startsWith('data:') ? (
+                            <img src={tm.avatar} alt={tm.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            tm.avatar
+                          )}
                         </div>
                         <span style={{ fontSize: '0.76rem', color: '#1e1f21', fontWeight: 600 }}>
                           {tm.name.split(' ')[0]}

@@ -68,6 +68,7 @@ export interface TeamMemberTimesheet {
   id: string;
   name: string;
   initials: string;
+  avatar?: string;
   capacityHours: number;
   dailyHours: number[]; // 7 days: Sun, Mon, Tue, Wed, Thu, Fri, Sat
 }
@@ -165,6 +166,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
       id: 'mem-user',
       name: currentUserName,
       initials: userInitials,
+      avatar: user?.avatar,
       capacityHours: 40,
       dailyHours: [0, 0, 0, 0, 0, 0, 0]
     },
@@ -1104,9 +1106,18 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        overflow: 'hidden'
                       }}>
-                        {member.initials}
+                        {member.avatar || (member.id === 'mem-user' && user?.avatar) ? (
+                          <img
+                            src={member.avatar || user?.avatar}
+                            alt={member.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          member.initials
+                        )}
                       </div>
 
                       <div>

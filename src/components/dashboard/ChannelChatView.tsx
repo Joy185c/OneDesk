@@ -26,6 +26,7 @@ interface ChatMessage {
   sender: string;
   avatarBg: string;
   initials: string;
+  avatar?: string;
   text: string;
   timestamp: string;
   isSystem?: boolean;
@@ -182,6 +183,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
       sender: currentUserName,
       avatarBg: isAdmin ? '#176B50' : '#123D32',
       initials: userInitials,
+      avatar: user?.avatar || '',
       text: inputText.trim(),
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     };
@@ -422,9 +424,18 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
               fontWeight: 800,
               fontSize: '0.82rem',
               flexShrink: 0,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              overflow: 'hidden'
             }}>
-              {msg.initials}
+              {msg.avatar || (msg.sender === currentUserName && user?.avatar) ? (
+                <img
+                  src={msg.avatar || user?.avatar}
+                  alt={msg.sender}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                msg.initials
+              )}
             </div>
 
             <div style={{ flex: 1 }}>

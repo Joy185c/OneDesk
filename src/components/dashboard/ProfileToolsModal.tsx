@@ -108,17 +108,42 @@ export const ProfileToolsModal: React.FC<ProfileToolsModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('Image file too large (Max 5MB)');
+    if (file.size > 8 * 1024 * 1024) {
+      showToast('Image file too large (Max 8MB)');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const result = event.target?.result as string;
-      if (result) {
-        setEditAvatar(result);
-        showToast('Profile photo ready to save!');
+      const rawDataUrl = event.target?.result as string;
+      if (rawDataUrl) {
+        // Create an image to resize to optimal avatar dimensions (256x256)
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const size = 256;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            // Draw cropped centered square
+            const minSide = Math.min(img.width, img.height);
+            const sx = (img.width - minSide) / 2;
+            const sy = (img.height - minSide) / 2;
+            ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+            const optimized = canvas.toDataURL('image/jpeg', 0.88);
+            setEditAvatar(optimized);
+            showToast('✓ Profile photo optimized & ready to save!');
+          } else {
+            setEditAvatar(rawDataUrl);
+            showToast('✓ Profile photo ready to save!');
+          }
+        };
+        img.onerror = () => {
+          setEditAvatar(rawDataUrl);
+          showToast('✓ Profile photo ready to save!');
+        };
+        img.src = rawDataUrl;
       }
     };
     reader.readAsDataURL(file);

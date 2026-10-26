@@ -591,6 +591,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       workspaceName: cleanWorkspace
     };
 
+    try {
+      localStorage.setItem(STORAGE_SESSION_CACHE, JSON.stringify(updatedUser));
+      memberService.addWorkspaceMember({
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: (updatedUser.role as any) || 'Owner',
+        status: 'Online',
+        avatar: updatedUser.avatar || '',
+        avatarBg: '#176B50',
+        initials: updatedUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U',
+        isYou: true
+      });
+      window.dispatchEvent(new CustomEvent('onedesk_profile_updated', { detail: updatedUser }));
+    } catch (e) {
+      console.warn('[OneDesk Auth] Cache write error:', e);
+    }
+
     setUser(updatedUser);
 
     if (supabase && session?.user) {

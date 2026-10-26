@@ -42,6 +42,7 @@ export interface GoalItem {
   description: string;
   owner: string;
   ownerInitials: string;
+  ownerAvatar?: string;
   color: string;
   icon: string;
   dueDate: string;
@@ -49,13 +50,14 @@ export interface GoalItem {
   targets: GoalTarget[];
 }
 
-const getDefaultGoals = (ownerName: string, ownerInitials: string): GoalItem[] => [
+const getDefaultGoals = (ownerName: string, ownerInitials: string, ownerAvatar?: string): GoalItem[] => [
   {
     id: 'goal-1',
     name: 'Scale Q4 Enterprise Pipeline',
     description: 'Accelerate outbound sales CRM demos and close 12 key enterprise deals before year end.',
     owner: ownerName,
     ownerInitials: ownerInitials,
+    ownerAvatar: ownerAvatar,
     color: 'var(--brand-primary, #176B50)',
     icon: '🎯',
     dueDate: 'Dec 31, 2026',
@@ -98,7 +100,7 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
       const saved = localStorage.getItem('clickup_goals_v1');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return getDefaultGoals(currentUserName, userInitials);
+    return getDefaultGoals(currentUserName, userInitials, user?.avatar);
   });
 
   const [activeTab, setActiveTab] = useState<'overview' | 'all' | 'my'>('overview');
@@ -160,6 +162,7 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
       description: newGoalDesc.trim() || 'Strategic high-level workspace milestone',
       owner: currentUserName,
       ownerInitials: userInitials,
+      ownerAvatar: user?.avatar || '',
       color: newGoalColor,
       icon: newGoalIcon,
       dueDate: newGoalDueDate,
@@ -701,9 +704,19 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
                         fontWeight: 800,
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        flexShrink: 0
                       }}>
-                        {goal.ownerInitials}
+                        {goal.ownerAvatar || (goal.owner === currentUserName && user?.avatar) ? (
+                          <img
+                            src={goal.ownerAvatar || user?.avatar}
+                            alt={goal.owner}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          goal.ownerInitials
+                        )}
                       </div>
                       <span style={{ fontSize: '0.76rem', color: '#64748b' }}>Owner: {goal.owner}</span>
                     </div>

@@ -1832,9 +1832,14 @@ I have analyzed your query against all active docs, workspace tasks, and knowled
                           justifyContent: 'center',
                           fontWeight: 800,
                           fontSize: '0.76rem',
-                          flexShrink: 0
+                          flexShrink: 0,
+                          overflow: 'hidden'
                         }}>
-                          {userInitials || 'U'}
+                          {user?.avatar ? (
+                            <img src={user.avatar} alt={currentUserName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            userInitials || 'U'
+                          )}
                         </div>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
