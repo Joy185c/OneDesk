@@ -33,42 +33,8 @@ interface ChatMessage {
 }
 
 const INITIAL_MESSAGES: Record<string, ChatMessage[]> = {
-  general: [
-    {
-      id: 'cm-1',
-      sender: 'Workspace Admin',
-      avatarBg: '#059669',
-      initials: 'WA',
-      text: "👋 Welcome everyone to the workspace! We're kicking off the Q4 sprint for Sales CRM.",
-      timestamp: '10:14 AM'
-    },
-    {
-      id: 'cm-2',
-      sender: 'Alex Rivera',
-      avatarBg: '#7c3aed',
-      initials: 'AR',
-      text: "Awesome! The OAuth 2.0 PKCE flow task is in progress on the Board. Will submit for review soon.",
-      timestamp: '10:18 AM'
-    },
-    {
-      id: 'cm-3',
-      sender: 'Sarah Chang',
-      avatarBg: '#8b5cf6',
-      initials: 'SC',
-      text: "I've updated the whiteboard with the wireframe notes. Ready for the Design Sprint Feedback at 9:30 AM Wednesday.",
-      timestamp: '10:25 AM'
-    }
-  ],
-  welcome: [
-    {
-      id: 'cw-1',
-      sender: 'ClickUp Brain',
-      avatarBg: '#ff72e5',
-      initials: 'AI',
-      text: "Welcome to ClickUp 3.0! This workspace is pre-configured with Sales CRM pipeline, Kanban boards, Docs, and Time tracking.",
-      timestamp: 'Yesterday'
-    }
-  ]
+  general: [],
+  welcome: []
 };
 
 interface ChannelChatViewProps {
@@ -88,18 +54,12 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
     try {
       const storageKey = isDemoUser ? `clickup_channel_msgs_${key}` : `clickup_channel_msgs_${key}_${user?.id || 'guest'}`;
       const saved = localStorage.getItem(storageKey);
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return INITIAL_MESSAGES[key] || [
-      {
-        id: 'cm-init',
-        sender: 'ClickUp Brain',
-        avatarBg: '#ff72e5',
-        initials: 'AI',
-        text: `Welcome to #${key}! Start team conversations, share updates, and collaborate here.`,
-        timestamp: 'Just now'
+      if (saved) {
+        const parsed: ChatMessage[] = JSON.parse(saved);
+        return parsed.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-'));
       }
-    ];
+    } catch {}
+    return [];
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => getInitialMessages(channelKey));
@@ -134,8 +94,13 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
 
     // 2. Fetch live messages from Supabase
     supabaseService.getChatMessages(channelKey).then(({ messages: cloudMsgs }) => {
-      if (isMounted && cloudMsgs && cloudMsgs.length > 0) {
-        setMessages(cloudMsgs);
+      if (isMounted) {
+        if (cloudMsgs && cloudMsgs.length > 0) {
+          const realMsgs = cloudMsgs.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-'));
+          setMessages(realMsgs);
+        } else {
+          setMessages(prev => prev.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-')));
+        }
       }
     });
 
@@ -401,68 +366,101 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
         gap: '16px',
         backgroundColor: '#fbfcfe'
       }}>
-        {messages.map(msg => (
-          <div 
-            key={msg.id} 
-            style={{ 
-              display: 'flex', 
-              gap: '12px',
-              backgroundColor: msg.isSystem ? 'rgba(124, 58, 237, 0.05)' : 'transparent',
-              padding: msg.isSystem ? '8px 12px' : '0',
-              borderRadius: '8px'
-            }}
-          >
+        {messages.length === 0 ? (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '80px 20px',
+            textAlign: 'center',
+            color: 'var(--text-secondary, #64748b)'
+          }}>
             <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '50%',
-              backgroundColor: msg.avatarBg || '#7c3aed',
-              color: '#ffffff',
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              backgroundColor: 'var(--bg-selected, #E0EDE3)',
+              color: 'var(--brand-primary, #176B50)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '0.82rem',
-              flexShrink: 0,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-              overflow: 'hidden'
+              marginBottom: '14px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
             }}>
-              {msg.avatar || (msg.sender === currentUserName && user?.avatar) ? (
-                <img
-                  src={msg.avatar || user?.avatar}
-                  alt={msg.sender}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                msg.initials
-              )}
+              <Hash size={28} />
             </div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>
-                  {msg.sender}
-                </span>
-                {msg.sender === currentUserName && (
-                  <span style={{ fontSize: '0.68rem', backgroundColor: '#e0e7ff', color: '#4338ca', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                    You
-                  </span>
-                )}
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                  {msg.timestamp}
-                </span>
-              </div>
-              <div style={{ 
-                fontSize: '0.88rem', 
-                color: msg.isSystem ? 'var(--brand-primary, #176B50)' : 'var(--text-primary, #334155)', 
-                lineHeight: '1.45',
-                fontWeight: msg.isSystem ? 600 : 400
-              }}>
-                <MarkdownRenderer content={msg.text} />
-              </div>
-            </div>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary, #0f172a)' }}>
+              Welcome to #{channelKey}
+            </h3>
+            <p style={{ margin: 0, fontSize: '0.86rem', maxWidth: '380px', lineHeight: 1.5 }}>
+              This is the start of the #{channelKey} channel. Send a message below to start collaborating with your team!
+            </p>
           </div>
-        ))}
+        ) : (
+          messages.map(msg => (
+            <div 
+              key={msg.id} 
+              style={{ 
+                display: 'flex', 
+                gap: '12px',
+                backgroundColor: msg.isSystem ? 'rgba(124, 58, 237, 0.05)' : 'transparent',
+                padding: msg.isSystem ? '8px 12px' : '0',
+                borderRadius: '8px'
+              }}
+            >
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                backgroundColor: msg.avatarBg || '#7c3aed',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: '0.82rem',
+                flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                overflow: 'hidden'
+              }}>
+                {msg.avatar || (msg.sender === currentUserName && user?.avatar) ? (
+                  <img
+                    src={msg.avatar || user?.avatar}
+                    alt={msg.sender}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  msg.initials
+                )}
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>
+                    {msg.sender}
+                  </span>
+                  {msg.sender === currentUserName && (
+                    <span style={{ fontSize: '0.68rem', backgroundColor: '#e0e7ff', color: '#4338ca', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                      You
+                    </span>
+                  )}
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    {msg.timestamp}
+                  </span>
+                </div>
+                <div style={{ 
+                  fontSize: '0.88rem', 
+                  color: msg.isSystem ? 'var(--brand-primary, #176B50)' : 'var(--text-primary, #334155)', 
+                  lineHeight: '1.45',
+                  fontWeight: msg.isSystem ? 600 : 400
+                }}>
+                  <MarkdownRenderer content={msg.text} />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Input Message Form */}
