@@ -13,6 +13,10 @@ export interface TaskItem {
   timeEstimate: string;
   tags: string[];
   commentsCount: number;
+  userId?: string;
+  workspaceId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ChatMessage {

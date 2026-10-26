@@ -90,6 +90,7 @@ import { GoalsView } from './GoalsView';
 import { AppCenterModal } from './AppCenterModal';
 import { ChatLaunchpadView } from './ChatLaunchpadView';
 import { SpacesOverviewView } from './SpacesOverviewView';
+import { PRODUCT_FLAGS } from '../../config/productFlags';
 
 interface WorkspaceAppProps {
   onBackToLanding: () => void;
@@ -471,12 +472,61 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Load from Supabase on mount
+  // Safe migration state for local storage tasks
+  const [pendingMigrationTasks, setPendingMigrationTasks] = useState<TaskItem[]>([]);
+  const [isMigratingTasks, setIsMigratingTasks] = useState(false);
+
+  // Detect unmigrated local tasks on user login
   useEffect(() => {
+    if (user?.id && !isDemoUser) {
+      try {
+        const stored = localStorage.getItem('clickjoy_saved_tasks');
+        if (stored) {
+          const parsed: TaskItem[] = JSON.parse(stored);
+          const unowned = parsed.filter(t => !t.userId || t.userId !== user.id);
+          if (unowned.length > 0) {
+            setPendingMigrationTasks(unowned);
+          }
+        }
+      } catch {}
+    }
+  }, [user?.id, isDemoUser]);
+
+  const handleConfirmMigration = async () => {
+    if (!user?.id || pendingMigrationTasks.length === 0) return;
+    setIsMigratingTasks(true);
+    const res = await supabaseService.migrateLocalTasksToCloud(user.id, pendingMigrationTasks);
+    setIsMigratingTasks(false);
+    if (res.success) {
+      showToast(`✓ Successfully migrated ${res.migratedCount} local tasks to cloud!`);
+      setPendingMigrationTasks([]);
+      localStorage.removeItem('clickjoy_saved_tasks');
+      const fresh = await supabaseService.getTasks(user.id);
+      setTasks(fresh.tasks);
+    } else {
+      showToast(`⚠️ Migration error: ${res.error || 'Failed to migrate'}`);
+    }
+  };
+
+  const handleDismissMigration = () => {
+    setPendingMigrationTasks([]);
+  };
+
+  // Load from Supabase on mount and when user identity changes
+  useEffect(() => {
+    let isMounted = true;
     const loadTasks = async () => {
-      const loaded = await supabaseService.getTasks();
-      setTasks(loaded);
+      setIsSyncingSupabase(true);
+      const { tasks: loaded, error } = await supabaseService.getTasks(user?.id);
+      if (!isMounted) return;
+      setIsSyncingSupabase(false);
+      if (error) {
+        showToast(`⚠️ Cloud connection notice: ${error}`);
+      } else {
+        setTasks(loaded);
+      }
     };
+
     loadTasks();
 
     const unsubscribe = supabaseService.subscribeToTasks(() => {
@@ -484,42 +534,64 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
     });
 
     return () => {
+      isMounted = false;
       unsubscribe();
     };
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('clickjoy_saved_tasks', JSON.stringify(tasks));
-  }, [tasks]);
+  }, [user?.id, isDemoUser]);
 
   const handleAddTask = async (newTask: TaskItem) => {
-    setTasks([newTask, ...tasks]);
-    await supabaseService.createTask(newTask);
+    // 1. Optimistic update
+    setTasks(prev => [newTask, ...prev]);
+
+    // 2. Persist to Supabase
+    const res = await supabaseService.createTask(newTask, user?.id);
+    if (!res.success) {
+      showToast(`⚠️ Database error: ${res.error || 'Failed to create task'}`);
+      // Revert optimistic update
+      setTasks(prev => prev.filter(t => t.id !== newTask.id));
+    } else {
+      showToast(`✓ Task "${newTask.title}" saved to cloud.`);
+    }
   };
 
   const handleUpdateTask = async (updated: TaskItem) => {
-    setTasks(tasks.map(t => t.id === updated.id ? updated : t));
+    const previous = tasks.find(t => t.id === updated.id);
+    setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
     setSelectedTask(updated);
-    await supabaseService.updateTask(updated);
+
+    const res = await supabaseService.updateTask(updated);
+    if (!res.success) {
+      showToast(`⚠️ Database update failed: ${res.error || 'Could not update'}`);
+      if (previous) {
+        setTasks(prev => prev.map(t => t.id === updated.id ? previous : t));
+        setSelectedTask(previous);
+      }
+    }
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    setTasks(tasks.filter(t => t.id !== taskId));
+    const previous = tasks.find(t => t.id === taskId);
+    setTasks(prev => prev.filter(t => t.id !== taskId));
     if (selectedTask?.id === taskId) {
       setSelectedTask(null);
     }
-    await supabaseService.deleteTask(taskId);
+
+    const res = await supabaseService.deleteTask(taskId, user?.id);
+    if (!res.success) {
+      showToast(`⚠️ Database delete failed: ${res.error || 'Could not delete'}`);
+      if (previous) {
+        setTasks(prev => [previous, ...prev]);
+      }
+    } else {
+      showToast('✓ Task deleted from cloud.');
+    }
   };
 
   const handleQuickMove = async (taskId: string, newStatus: 'TODO' | 'IN PROGRESS' | 'REVIEW' | 'COMPLETE') => {
     const target = tasks.find(t => t.id === taskId);
     if (!target) return;
     const updated = { ...target, status: newStatus };
-    setTasks(tasks.map(t => t.id === taskId ? updated : t));
-    if (selectedTask?.id === taskId) {
-      setSelectedTask(updated);
-    }
-    await supabaseService.updateTask(updated);
+    await handleUpdateTask(updated);
   };
 
   const filteredTasks = tasks.filter(t => 
@@ -1100,10 +1172,12 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               onClick={() => setIsUpgradeOpen(true)}
               onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
               onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-              title="Upgrade Workspace Plan"
+              title={PRODUCT_FLAGS.isFreeCommunityEdition ? "OneDesk Free Community Edition — All features unlocked" : "Upgrade Workspace Plan"}
             >
               <ClickUpUpgradeRocket />
-              <span style={{ fontSize: '0.66rem', color: '#ffffff', fontWeight: 800 }}>Upgrade</span>
+              <span style={{ fontSize: '0.66rem', color: '#ffffff', fontWeight: 800 }}>
+                {PRODUCT_FLAGS.subscriptionsEnabled ? 'Upgrade' : 'Free'}
+              </span>
             </div>
           </div>
         </div>
@@ -1401,7 +1475,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
               {/* Meetings */}
               <div 
                 onClick={() => {
-                  showToast('ClickUp Meetings & Live AI Notes ready');
+                  setActiveTab('planner');
+                  showToast('Viewing Calendar & Scheduled Meetings');
                 }}
                 style={{
                   display: 'flex',
@@ -1417,8 +1492,9 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 }}
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f1f5f9'}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                title="Calendar & Scheduled Meetings"
               >
-                <Phone size={14} color="#64748b" />
+                <Calendar size={14} color="#64748b" />
                 <span>Meetings</span>
               </div>
 
@@ -2168,9 +2244,11 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   <Star size={14} color="#94a3b8" />
                 </div>
 
-                {/* Right Tools: Call, Agents, Automate, Brain², Share */}
+                {/* Right Tools: Agents, Automate, Brain², Share */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.78rem', color: '#64748b' }}>
-                  <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={14} /></span>
+                  {PRODUCT_FLAGS.audioCallsEnabled && (
+                    <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={14} /></span>
+                  )}
                   <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => setActiveTab('ai')}><Bot size={14} /> Agents</span>
                   <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => setActiveTab('automations')}><Zap size={14} /> Automate</span>
                   <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#7c3aed', fontWeight: 700 }} onClick={() => setActiveTab('ai')}><ClickUpPetalIcon size={14} /> Brain²</span>
@@ -2708,6 +2786,78 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                     <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{tasks.length} active tasks in pipeline</div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Safe Local Storage Tasks Cloud Migration Prompt */}
+          {pendingMigrationTasks.length > 0 && (
+            <div style={{
+              backgroundColor: '#f5f3ff',
+              border: '1px solid #ddd6fe',
+              borderRadius: '10px',
+              margin: '12px 24px',
+              padding: '12px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 8px rgba(124, 58, 237, 0.08)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  backgroundColor: '#7c3aed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff'
+                }}>
+                  <Database size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1e1b4b' }}>
+                    Local Tasks Detected ({pendingMigrationTasks.length})
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#6b21a8' }}>
+                    You have {pendingMigrationTasks.length} task(s) stored locally on this browser. Would you like to safely migrate them to your Supabase cloud workspace?
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={handleConfirmMigration}
+                  disabled={isMigratingTasks}
+                  style={{
+                    backgroundColor: '#7c3aed',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 14px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: isMigratingTasks ? 'not-allowed' : 'pointer',
+                    opacity: isMigratingTasks ? 0.7 : 1
+                  }}
+                >
+                  {isMigratingTasks ? 'Migrating...' : 'Sync to Cloud'}
+                </button>
+                <button
+                  onClick={handleDismissMigration}
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: '#64748b',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '6px 12px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Keep Local
+                </button>
               </div>
             </div>
           )}
@@ -3793,8 +3943,12 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 onClick={async () => {
                   setIsSyncingSupabase(true);
                   showToast('Re-syncing with PostgreSQL and Supabase Realtime channel...');
-                  const loaded = await supabaseService.getTasks();
-                  setTasks(loaded);
+                  const { tasks: loaded, error } = await supabaseService.getTasks(user?.id);
+                  if (error) {
+                    showToast(`⚠️ Sync notice: ${error}`);
+                  } else {
+                    setTasks(loaded);
+                  }
                   setTimeout(() => {
                     setIsSyncingSupabase(false);
                     showToast('Supabase PostgreSQL data successfully synced!');

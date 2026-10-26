@@ -3,7 +3,6 @@ import {
   Users, 
   UserPlus, 
   Search, 
-  ShieldCheck, 
   Mail, 
   Check, 
   MoreHorizontal, 
@@ -20,18 +19,7 @@ import {
   Calendar, 
   Clock, 
   BarChart2, 
-  BarChart3, 
-  TrendingUp, 
-  AlertCircle, 
-  ArrowLeft, 
   ExternalLink, 
-  Edit2, 
-  CheckCheck, 
-  Smile, 
-  HelpCircle, 
-  Briefcase, 
-  Lock, 
-  Globe, 
   Flag, 
   Share2,
   ChevronDown,
@@ -53,14 +41,10 @@ import {
   Tag,
   Maximize2,
   Minus,
-  SlidersHorizontal,
-  Bot,
   MessageSquare,
   Send,
   Mic,
-  Paperclip,
   Columns,
-  GitFork,
   Link2,
   User,
   Folder
@@ -147,7 +131,7 @@ const COLOR_PALETTE = ['#7c3aed', '#2563eb', '#059669', '#db2777', '#ea580c', '#
 export const TeamsView: React.FC<TeamsViewProps> = ({ 
   tasks = [], 
   onOpenTask,
-  onOpenInviteModal, 
+  onOpenInviteModal: _onOpenInviteModal, 
   onOpenUpgradeModal 
 }) => {
   const { user } = useAuth();
@@ -307,7 +291,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
   const [standupYesterday, setStandupYesterday] = useState('');
   const [standupToday, setStandupToday] = useState('');
   const [standupBlockers, setStandupBlockers] = useState('');
-  const [isStandupFormOpen, setIsStandupFormOpen] = useState(false);
+  const [_isStandupFormOpen, setIsStandupFormOpen] = useState(false);
 
   // Analytics Tab State
   const [analyticsDateOffset, setAnalyticsDateOffset] = useState<number>(0);
@@ -351,7 +335,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
   const [workloadTimeRange, setWorkloadTimeRange] = useState<string>('14 days');
   const [workloadDailySchedule, setWorkloadDailySchedule] = useState<string>('Daily Scheduled');
   const [backlogTab, setBacklogTab] = useState<'Unscheduled' | 'No estimate' | 'Overdue' | 'Unassigned'>('Unscheduled');
-  const [backlogSearchQuery, setBacklogSearchQuery] = useState<string>('');
+  const [_backlogSearchQuery, _setBacklogSearchQuery] = useState<string>('');
   const [isClosedIncluded, setIsClosedIncluded] = useState<boolean>(true);
   const [workloadOffset, setWorkloadOffset] = useState<number>(0);
 
@@ -669,7 +653,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
   };
 
   // Handle Post Standup
-  const handlePostStandup = (e: React.FormEvent) => {
+  const _handlePostStandup = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeTeam || !standupToday.trim()) return;
 

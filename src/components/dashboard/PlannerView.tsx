@@ -35,6 +35,7 @@ import {
   Compass
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { supabaseService } from '../../services/supabaseService';
 
 // ==========================================
 // SVG ICONS & BRAND ASSETS
@@ -406,6 +407,18 @@ export const PlannerView: React.FC = () => {
     localStorage.setItem('clickup_planner_connected', isConnected ? 'true' : 'false');
   }, [isConnected]);
 
+  // Cloud sync for Calendar Events
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { events: cloudEvts } = await supabaseService.getCalendarEvents(user?.id);
+      if (mounted && cloudEvts && cloudEvts.length > 0) {
+        setEvents(cloudEvts);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user?.id]);
+
   useEffect(() => {
     localStorage.setItem('clickup_planner_events_v3', JSON.stringify(events));
   }, [events]);
@@ -537,7 +550,7 @@ export const PlannerView: React.FC = () => {
       // Update
       setEvents(prev => prev.map(ev => {
         if (ev.id === editingEvent.id) {
-          return {
+          const updatedEvt: CalendarEvent = {
             ...ev,
             title: eventFormTitle,
             dayIndex: eventFormDay,
@@ -553,6 +566,8 @@ export const PlannerView: React.FC = () => {
             description: eventFormDescription,
             attendees: [eventFormAttendee]
           };
+          supabaseService.saveCalendarEvent(updatedEvt, user?.id);
+          return updatedEvt;
         }
         return ev;
       }));
@@ -577,6 +592,7 @@ export const PlannerView: React.FC = () => {
         attendees: [eventFormAttendee]
       };
       setEvents(prev => [...prev, newEvt]);
+      supabaseService.saveCalendarEvent(newEvt, user?.id);
       showToast(`Event "${eventFormTitle}" scheduled`);
     }
 
@@ -586,6 +602,7 @@ export const PlannerView: React.FC = () => {
   // Delete Event
   const handleDeleteEvent = (id: string) => {
     setEvents(prev => prev.filter(e => e.id !== id));
+    supabaseService.deleteCalendarEvent(id);
     setIsEventModalOpen(false);
     showToast('Event removed from calendar');
   };

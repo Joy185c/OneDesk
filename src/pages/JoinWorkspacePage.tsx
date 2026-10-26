@@ -14,78 +14,105 @@ import {
   Check
 } from 'lucide-react';
 import { memberService } from '../services/memberService';
+import { workspaceService } from '../services/workspaceService';
 import { useAuth } from '../context/AuthContext';
 
 export const JoinWorkspacePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, signup, user } = useAuth();
 
-  const code = searchParams.get('code') || '';
+  const code = searchParams.get('code') || searchParams.get('token') || '';
   const initialEmail = searchParams.get('email') || '';
   const initialRole = searchParams.get('role') || 'Member';
-  const workspaceName = searchParams.get('ws') || "ClickUp Workspace";
+  const workspaceName = searchParams.get('ws') || "OneDesk Workspace";
   const inviterName = searchParams.get('by') || 'Workspace Admin';
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState(initialEmail);
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || initialEmail);
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(initialRole);
   const [isJoining, setIsJoining] = useState(false);
   const [joinedSuccess, setJoinedSuccess] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
-  // If code exists, see if there's a stored invite
+  // If code exists, verify with Supabase cloud invitations table
   useEffect(() => {
     if (code) {
-      const invites = memberService.getInvitations();
-      const matched = invites.find(i => i.token === code);
-      if (matched) {
-        setEmail(matched.email);
-        setRole(matched.role);
-      }
+      workspaceService.getInvitationByToken(code).then(({ invitation, error }) => {
+        if (error || !invitation) {
+          // Fallback to local storage check
+          const invites = memberService.getInvitations();
+          const matched = invites.find(i => i.token === code);
+          if (matched) {
+            setEmail(matched.email);
+            setRole(matched.role);
+          } else {
+            setInviteError(error || 'Invalid or expired invitation token');
+          }
+        } else {
+          setEmail(invitation.email);
+          setRole(invitation.role.charAt(0).toUpperCase() + invitation.role.slice(1));
+        }
+      });
     }
+
     if (initialEmail && !name) {
       const guessedName = initialEmail.split('@')[0].replace(/[._-]/g, ' ');
       setName(guessedName.charAt(0).toUpperCase() + guessedName.slice(1));
     }
   }, [code, initialEmail]);
 
-  const handleJoin = (e: React.FormEvent) => {
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim()) return;
 
     setIsJoining(true);
+    setInviteError(null);
 
-    setTimeout(() => {
-      // 1. Accept in memberService
-      const newMember = memberService.acceptInvitation(code, {
+    try {
+      let activeUserId = user?.id;
+
+      // If user not logged in, authenticate or sign up with Supabase
+      if (!user) {
+        if (password) {
+          const loginRes = await login(email, password);
+          if (loginRes.success && loginRes.user) {
+            activeUserId = loginRes.user.id;
+          } else {
+            // Attempt signup if login failed
+            const signupRes = await signup(name.trim(), email, password);
+            if (signupRes.success && signupRes.user) {
+              activeUserId = signupRes.user.id;
+            } else {
+              setInviteError(loginRes.error || signupRes.error || 'Authentication failed. Please verify credentials.');
+              setIsJoining(false);
+              return;
+            }
+          }
+        }
+      }
+
+      // Accept invitation in cloud if code exists and user is identified
+      if (code && activeUserId) {
+        await workspaceService.acceptInvitation(code, activeUserId);
+      }
+
+      // Add to local member service for smooth UI rehydration
+      memberService.acceptInvitation(code, {
         name: name.trim()
       });
-
-      // 2. Set auth session
-      login(email);
-
-      // Save user details with custom role and workspace
-      const customUser = {
-        id: newMember.id,
-        name: newMember.name,
-        email: newMember.email,
-        avatar: newMember.avatar,
-        role: role === 'Admin' ? 'Workspace Admin' : role === 'Guest' ? 'Guest Collaborator' : 'Workspace Member',
-        workspaceName: workspaceName,
-        emailVerified: true,
-        emailVerifiedAt: new Date().toISOString(),
-        authProvider: newMember.email.endsWith('@gmail.com') ? 'gmail' : 'email'
-      };
-      localStorage.setItem('clickjoy_auth_user', JSON.stringify(customUser));
 
       setIsJoining(false);
       setJoinedSuccess(true);
 
       setTimeout(() => {
         navigate('/workspace');
-      }, 1200);
-    }, 600);
+      }, 1000);
+    } catch (err: any) {
+      setIsJoining(false);
+      setInviteError(err.message || 'Failed to accept invitation');
+    }
   };
 
   return (
@@ -191,6 +218,21 @@ export const JoinWorkspacePage: React.FC = () => {
                 </span>
               </p>
             </div>
+
+            {/* Error notice if token invalid or join fails */}
+            {inviteError && (
+              <div style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                color: '#fca5a5',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                fontSize: '0.82rem',
+                marginBottom: '16px'
+              }}>
+                {inviteError}
+              </div>
+            )}
 
             {/* Workspace details preview badge */}
             <div style={{

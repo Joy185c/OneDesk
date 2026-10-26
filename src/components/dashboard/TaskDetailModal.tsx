@@ -20,6 +20,7 @@ import {
 import { TaskItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { memberService, WorkspaceMember } from '../../services/memberService';
+import { generateUUID } from '../../lib/uuid';
 
 interface TaskDetailModalProps {
   task: TaskItem | null;
@@ -35,15 +36,14 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onDeleteTask
 }) => {
   const { user } = useAuth();
-  if (!task) return null;
 
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
-  const [title, setTitle] = useState(task.title);
-  const [status, setStatus] = useState(task.status);
-  const [priority, setPriority] = useState(task.priority);
-  const [assigneeName, setAssigneeName] = useState(task.assignee.name);
-  const [timeEstimate, setTimeEstimate] = useState(task.timeEstimate);
-  const [dueDate, setDueDate] = useState(task.dueDate);
+  const [title, setTitle] = useState(task?.title || '');
+  const [status, setStatus] = useState(task?.status || 'TODO');
+  const [priority, setPriority] = useState(task?.priority || 'Normal');
+  const [assigneeName, setAssigneeName] = useState(task?.assignee?.name || '');
+  const [timeEstimate, setTimeEstimate] = useState(task?.timeEstimate || '');
+  const [dueDate, setDueDate] = useState(task?.dueDate || '');
   const [newComment, setNewComment] = useState('');
   const [activities, setActivities] = useState<Array<{ id: string; text: string; time: string }>>([
     { id: 'act-1', text: `Task created in Sprint Backlog`, time: 'Earlier' }
@@ -67,6 +67,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     const list = memberService.getWorkspaceMembers();
     setMembers(list);
   }, []);
+
+  if (!task) return null;
 
   const handleStatusChange = (newStatus: 'TODO' | 'IN PROGRESS' | 'REVIEW' | 'COMPLETE') => {
     setStatus(newStatus);
@@ -130,7 +132,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     e.preventDefault();
     if (!newComment.trim()) return;
     const added = {
-      id: String(Date.now()),
+      id: generateUUID(),
       author: user?.name || 'You',
       avatar: user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
       time: 'Just now',
@@ -146,7 +148,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     e.preventDefault();
     if (!newSubtaskText.trim()) return;
     const added = {
-      id: 'st_' + Date.now(),
+      id: generateUUID(),
       title: newSubtaskText.trim(),
       done: false
     };

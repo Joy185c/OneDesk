@@ -3,6 +3,7 @@ import { X, Plus, Flag, Calendar, Clock, User, CheckCircle2 } from 'lucide-react
 import { TaskItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { memberService, WorkspaceMember } from '../../services/memberService';
+import { generateUUID } from '../../lib/uuid';
 
 interface NewTaskModalProps {
   isOpen: boolean;
@@ -52,7 +53,7 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
     };
 
     const newTask: TaskItem = {
-      id: 't_' + Date.now(),
+      id: generateUUID(),
       key: `CLK-${Math.floor(Math.random() * 80) + 30}`,
       title: title.trim(),
       status,
@@ -65,7 +66,8 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
       dueDate,
       timeEstimate,
       tags: [tag],
-      commentsCount: 0
+      commentsCount: 0,
+      userId: user?.id
     };
 
     onAddTask(newTask);

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
+import { supabaseService } from '../../services/supabaseService';
 
 export interface ClipItem {
   id: string;
@@ -39,6 +40,7 @@ export interface ClipItem {
   thumbnailGradient: string;
   transcript: string;
   tags: string[];
+  videoUrl?: string | null;
 }
 
 const DEFAULT_CLIPS: ClipItem[] = [
@@ -109,6 +111,19 @@ export const ClipsView: React.FC = () => {
       localStorage.setItem('clickup_clips_v1', JSON.stringify(clips));
     } catch {}
   }, [clips]);
+
+  // Load clips from Supabase PostgreSQL
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCloudClips = async () => {
+      const cloudClips = await supabaseService.getClips(user?.id);
+      if (isMounted && cloudClips && cloudClips.length > 0) {
+        setClips(cloudClips);
+      }
+    };
+    fetchCloudClips();
+    return () => { isMounted = false; };
+  }, [user?.id]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -193,7 +208,7 @@ export const ClipsView: React.FC = () => {
     setIsRecordModalOpen(false);
   };
 
-  const handleSavePreviewClip = () => {
+  const handleSavePreviewClip = async () => {
     if (!previewClip) return;
     const finalClip: ClipItem = {
       ...previewClip,
@@ -202,12 +217,14 @@ export const ClipsView: React.FC = () => {
     setClips([finalClip, ...clips]);
     setPreviewClip(null);
     showToast(`Clip "${finalClip.title}" saved successfully!`);
+    await supabaseService.saveClip(finalClip, user?.id);
   };
 
-  const handleDeleteClip = (id: string, e: React.MouseEvent) => {
+  const handleDeleteClip = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setClips(clips.filter(c => c.id !== id));
     showToast('Clip deleted');
+    await supabaseService.deleteClip(id);
   };
 
   const formatSeconds = (sec: number) => {

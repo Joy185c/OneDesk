@@ -23,8 +23,12 @@ import {
   Download,
   Check,
   ChevronLeft,
-  Edit2
+  Edit2,
+  CloudCheck
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { supabaseService } from '../../services/supabaseService';
+import { generateUUID } from '../../lib/uuid';
 
 export interface DocItem {
   id: string;
@@ -88,6 +92,7 @@ Architecture guidelines, API schemas, and deployment checklists for engineering 
 ];
 
 export const DocsView: React.FC = () => {
+  const { user } = useAuth();
   const [docs, setDocs] = useState<DocItem[]>(() => {
     try {
       const saved = localStorage.getItem('clickup_saved_docs_v2');
@@ -102,6 +107,7 @@ export const DocsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [cloudSaveStatus, setCloudSaveStatus] = useState<'saved' | 'saving' | 'offline'>('saved');
 
   // Active doc editor states
   const activeDoc = docs.find(d => d.id === activeDocId);
@@ -112,6 +118,17 @@ export const DocsView: React.FC = () => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  // Load cloud docs on mount or user change
+  useEffect(() => {
+    let isMounted = true;
+    supabaseService.getDocs(user?.id).then(({ docs: cloudDocs }) => {
+      if (isMounted && cloudDocs && cloudDocs.length > 0) {
+        setDocs(cloudDocs);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [user?.id]);
 
   useEffect(() => {
     try {
@@ -126,10 +143,42 @@ export const DocsView: React.FC = () => {
     }
   }, [activeDocId]);
 
-  const handleCreateDoc = (initialTitle?: string, initialBody?: string) => {
+  // Debounced cloud autosave on content or title change
+  useEffect(() => {
+    if (!activeDocId) return;
+    const currentDoc = docs.find(d => d.id === activeDocId);
+    if (!currentDoc) return;
+    if (currentDoc.name === editingTitle && currentDoc.content === editingContent) return;
+
+    setCloudSaveStatus('saving');
+    const timer = setTimeout(async () => {
+      const res = await supabaseService.saveDoc({
+        id: activeDocId,
+        title: editingTitle,
+        content: editingContent
+      }, user?.id);
+
+      if (res.success) {
+        setCloudSaveStatus('saved');
+        setDocs(prev => prev.map(d => d.id === activeDocId ? {
+          ...d,
+          name: editingTitle,
+          content: editingContent,
+          dateUpdated: 'Just now'
+        } : d));
+      } else {
+        setCloudSaveStatus('offline');
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [editingTitle, editingContent, activeDocId, user?.id]);
+
+  const handleCreateDoc = async (initialTitle?: string, initialBody?: string) => {
     const title = initialTitle || 'Untitled Document';
+    const docId = generateUUID();
     const newDoc: DocItem = {
-      id: 'doc-' + Date.now(),
+      id: docId,
       name: title,
       location: 'Sales CRM',
       tags: [],
@@ -139,25 +188,49 @@ export const DocsView: React.FC = () => {
       content: initialBody || `# ${title}\n\nStart writing your document here...`
     };
 
-    setDocs([newDoc, ...docs]);
+    setDocs(prev => [newDoc, ...prev]);
     setActiveDocId(newDoc.id);
-    showToast(`Created "${title}" doc!`);
+
+    const res = await supabaseService.saveDoc({
+      id: docId,
+      title: newDoc.name,
+      content: newDoc.content
+    }, user?.id);
+
+    if (res.success) {
+      showToast(`✓ Created "${title}" in cloud!`);
+    } else {
+      showToast(`Created locally (Cloud sync notice: ${res.error || 'check network'})`);
+    }
   };
 
-  const handleSaveActiveDoc = () => {
+  const handleSaveActiveDoc = async () => {
     if (!activeDocId) return;
-    setDocs(prev => prev.map(d => {
-      if (d.id === activeDocId) {
-        return {
-          ...d,
-          name: editingTitle,
-          content: editingContent,
-          dateUpdated: 'Just now'
-        };
-      }
-      return d;
-    }));
-    showToast('Document saved successfully!');
+    setCloudSaveStatus('saving');
+    const res = await supabaseService.saveDoc({
+      id: activeDocId,
+      title: editingTitle,
+      content: editingContent
+    }, user?.id);
+
+    if (res.success) {
+      setCloudSaveStatus('saved');
+      setDocs(prev => prev.map(d => {
+        if (d.id === activeDocId) {
+          return {
+            ...d,
+            name: editingTitle,
+            content: editingContent,
+            dateUpdated: 'Just now'
+          };
+        }
+        return d;
+      }));
+      showToast('Document saved to cloud!');
+    } else {
+      showToast('Failed to save to cloud');
+      setCloudSaveStatus('offline');
+    }
   };
 
   const handleToggleFavorite = (docId: string, e?: React.MouseEvent) => {
@@ -172,13 +245,14 @@ export const DocsView: React.FC = () => {
     }));
   };
 
-  const handleDeleteDoc = (docId: string, e?: React.MouseEvent) => {
+  const handleDeleteDoc = async (docId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setDocs(prev => prev.filter(d => d.id !== docId));
     if (activeDocId === docId) {
       setActiveDocId(null);
     }
-    showToast('Document deleted');
+    await supabaseService.deleteDoc(docId);
+    showToast('Document deleted from cloud');
   };
 
   const handleAiGenerateDoc = () => {

@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { TaskItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { supabaseService } from '../../services/supabaseService';
 
 export interface TimeEntryItem {
   id: string;
@@ -135,6 +136,18 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
     } catch (e) {}
     return [];
   });
+
+  // Cloud sync for Time Entries
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { entries: cloudEntries } = await supabaseService.getTimeEntries(user?.id);
+      if (mounted && cloudEntries && cloudEntries.length > 0) {
+        setEntries(cloudEntries);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user?.id]);
 
   // Active Timesheet Task Rows (for Timesheet Grid)
   const [timesheetTaskIds, setTimesheetTaskIds] = useState<string[]>(() => {
@@ -389,6 +402,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
     };
 
     setEntries([newEntry, ...entries]);
+    supabaseService.saveTimeEntry(newEntry, user?.id);
 
     if (!timesheetTaskIds.includes(taskObj.id)) {
       setTimesheetTaskIds([...timesheetTaskIds, taskObj.id]);
@@ -427,13 +441,17 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
         user: currentUserName
       };
       setEntries([newE, ...otherEntries]);
+      supabaseService.saveTimeEntry(newE, user?.id);
     } else {
       setEntries(otherEntries);
+      const toDel = entries.find(e => e.taskId === taskId && e.dayOfWeek === dayIdx);
+      if (toDel) supabaseService.deleteTimeEntry(toDel.id);
     }
   };
 
   const handleDeleteEntry = (id: string) => {
     setEntries(entries.filter(e => e.id !== id));
+    supabaseService.deleteTimeEntry(id);
     showToast('Time entry deleted');
   };
 

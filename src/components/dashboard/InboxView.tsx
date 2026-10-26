@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { TaskItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { supabaseService } from '../../services/supabaseService';
 
 interface InboxNotification {
   id: string;
@@ -127,11 +128,39 @@ export const InboxView: React.FC<InboxViewProps> = ({
     return [];
   });
 
+  // Cloud sync for Notifications & derivation from real tasks
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { notifications: cloudNotifs } = await supabaseService.getNotifications(user?.id);
+      if (mounted && cloudNotifs && cloudNotifs.length > 0) {
+        setNotifications(cloudNotifs);
+      } else if (mounted && tasks && tasks.length > 0) {
+        // Derive real notifications from actual active tasks
+        const derived: InboxNotification[] = tasks.slice(0, 5).map((t, idx) => ({
+          id: `notif-task-${t.id}`,
+          sender: t.assignee?.name || 'Workspace Lead',
+          senderAvatar: (t.assignee?.name || 'WL').split(' ').map(w => w[0]).slice(0, 2).join(''),
+          action: t.status === 'COMPLETE' ? 'completed task' : 'assigned task to you:',
+          taskTitle: t.title,
+          taskId: t.id,
+          content: `Task "${t.title}" is in priority ${t.priority} with deadline ${t.dueDate}.`,
+          timestamp: 'Recently',
+          isRead: idx > 1,
+          tab: idx === 0 ? 'primary' : 'other'
+        }));
+        setNotifications(derived);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user?.id, tasks]);
+
   useEffect(() => {
     try {
       localStorage.setItem(storageKey, JSON.stringify(notifications));
     } catch {}
   }, [notifications, storageKey]);
+
   const [showNotificationList, setShowNotificationList] = useState<boolean>(false);
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'mentions'>('all');
@@ -146,15 +175,34 @@ export const InboxView: React.FC<InboxViewProps> = ({
   });
 
   const handleClearAll = () => {
-    setNotifications(prev => prev.map(n => n.tab === activeTab ? { ...n, tab: 'cleared' } : n));
+    setNotifications(prev => prev.map(n => {
+      if (n.tab === activeTab) {
+        supabaseService.updateNotificationStatus(n.id, { tab: 'cleared' });
+        return { ...n, tab: 'cleared' };
+      }
+      return n;
+    }));
   };
 
   const handleRestore = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, tab: 'primary' } : n));
+    setNotifications(prev => prev.map(n => {
+      if (n.id === id) {
+        supabaseService.updateNotificationStatus(id, { tab: 'primary' });
+        return { ...n, tab: 'primary' };
+      }
+      return n;
+    }));
   };
 
   const handleToggleRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: !n.isRead } : n));
+    setNotifications(prev => prev.map(n => {
+      if (n.id === id) {
+        const nextState = !n.isRead;
+        supabaseService.updateNotificationStatus(id, { isRead: nextState });
+        return { ...n, isRead: nextState };
+      }
+      return n;
+    }));
   };
 
   const handleSendReply = (id: string) => {

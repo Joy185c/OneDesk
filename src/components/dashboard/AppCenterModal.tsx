@@ -43,9 +43,9 @@ const DEFAULT_INTEGRATIONS: AppIntegration[] = [
     iconBg: '#4285f4',
     iconColor: '#ffffff',
     initials: 'GC',
-    connected: true,
+    connected: false,
     featured: true,
-    pillBadge: 'Connected'
+    pillBadge: 'Meet Scheduler Active'
   },
   {
     id: 'google-drive',
@@ -195,12 +195,13 @@ export const AppCenterModal: React.FC<{
   };
 
   const handleToggleConnect = (appId: string) => {
-    setApps(apps.map(a => {
-      if (a.id !== appId) return a;
-      const willConnect = !a.connected;
-      showToast(willConnect ? `Connected ${a.name} to ClickUp!` : `Disconnected ${a.name}`);
-      return { ...a, connected: willConnect };
-    }));
+    const target = apps.find(a => a.id === appId);
+    if (!target) return;
+    if (appId === 'google-calendar') {
+      showToast('Google Meet scheduler is active in Planner! Two-way sync requires custom Google Cloud credentials.');
+      return;
+    }
+    showToast(`${target.name} integration directory listing. Direct OAuth sync requires enterprise API keys.`);
   };
 
   const connectedCount = apps.filter(a => a.connected).length;

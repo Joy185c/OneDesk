@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { memberService, WorkspaceInvitation } from '../../services/memberService';
+import { workspaceService } from '../../services/workspaceService';
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -48,20 +49,31 @@ export const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onInv
 
   if (!isOpen) return null;
 
-  const handleCreateAndSendInvite = (e: React.FormEvent) => {
+  const handleCreateAndSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
 
     setIsSending(true);
 
-    setTimeout(() => {
-      const invite = memberService.createInvitation(email.trim(), role, workspaceName, inviterName);
-      setGeneratedInvite(invite);
-      setPendingInvites(memberService.getInvitations());
-      setIsSending(false);
-      setShowEmailPreview(true);
-      onInviteSent(email.trim(), role);
-    }, 400);
+    // 1. Create local and cloud invitation
+    const invite = memberService.createInvitation(email.trim(), role, workspaceName, inviterName);
+
+    // 2. Persist to Supabase cloud
+    if (user?.id) {
+      await workspaceService.createInvitation(
+        '', // workspaceId
+        email.trim(),
+        role.toLowerCase() as any,
+        user.id,
+        workspaceName
+      );
+    }
+
+    setGeneratedInvite(invite);
+    setPendingInvites(memberService.getInvitations());
+    setIsSending(false);
+    setShowEmailPreview(true);
+    onInviteSent(email.trim(), role);
   };
 
   const handleCopyLink = (url: string) => {

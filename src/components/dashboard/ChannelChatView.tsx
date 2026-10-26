@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { memberService, WorkspaceMember } from '../../services/memberService';
+import { supabaseService } from '../../services/supabaseService';
+import { generateUUID } from '../../lib/uuid';
 
 interface ChatMessage {
   id: string;
@@ -122,8 +124,33 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
   };
 
   useEffect(() => {
+    let isMounted = true;
+
+    // 1. Initial messages from cache or seeds
     setMessages(getInitialMessages(channelKey));
     refreshMembers();
+
+    // 2. Fetch live messages from Supabase
+    supabaseService.getChatMessages(channelKey).then(({ messages: cloudMsgs }) => {
+      if (isMounted && cloudMsgs && cloudMsgs.length > 0) {
+        setMessages(cloudMsgs);
+      }
+    });
+
+    // 3. Subscribe to real-time incoming messages
+    const unsubscribe = supabaseService.subscribeToChat(channelKey, (newMsg) => {
+      if (!isMounted) return;
+      setMessages(prev => {
+        // Prevent duplicate append
+        if (prev.some(m => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [channelKey]);
 
   useEffect(() => {
@@ -144,12 +171,13 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
       ? 'Welcome' 
       : channelKey;
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
+    const messageId = generateUUID();
     const newMsg: ChatMessage = {
-      id: 'cm-' + Date.now(),
+      id: messageId,
       sender: currentUserName,
       avatarBg: isAdmin ? '#059669' : '#7c3aed',
       initials: userInitials,
@@ -157,8 +185,24 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages([...messages, newMsg]);
+    // Optimistic UI update
+    setMessages(prev => [...prev, newMsg]);
     setInputText('');
+
+    // Persist to Supabase
+    const res = await supabaseService.sendChatMessage({
+      id: messageId,
+      text: newMsg.text,
+      sender: newMsg.sender,
+      initials: newMsg.initials,
+      avatarBg: newMsg.avatarBg,
+      channelKey,
+      userId: user?.id
+    });
+
+    if (!res.success) {
+      showToast(`⚠️ Message delivery issue: ${res.error || 'Check connection'}`);
+    }
   };
 
   // Requirement 3: Admin adds member to channel

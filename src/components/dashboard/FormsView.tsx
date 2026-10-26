@@ -16,6 +16,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { supabaseService } from '../../services/supabaseService';
 
 export interface FormField {
   id: string;
@@ -70,6 +71,18 @@ export const FormsView: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  // Cloud sync for Forms
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { forms: cloudForms } = await supabaseService.getForms(user?.id);
+      if (mounted && cloudForms && cloudForms.length > 0) {
+        setForms(cloudForms);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user?.id]);
+
   useEffect(() => {
     try {
       localStorage.setItem('clickup_saved_forms_v1', JSON.stringify(forms));
@@ -104,9 +117,11 @@ export const FormsView: React.FC = () => {
 
     if (activeFormId) {
       setForms(forms.map(f => f.id === activeFormId ? newForm : f));
+      supabaseService.saveForm(newForm, user?.id);
       showToast(`Updated form "${newForm.name}"!`);
     } else {
       setForms([newForm, ...forms]);
+      supabaseService.saveForm(newForm, user?.id);
       showToast(`Created form "${newForm.name}"!`);
     }
 
@@ -132,6 +147,7 @@ export const FormsView: React.FC = () => {
   const handleDeleteForm = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setForms(forms.filter(f => f.id !== id));
+    supabaseService.deleteForm(id);
     showToast('Form deleted');
   };
 

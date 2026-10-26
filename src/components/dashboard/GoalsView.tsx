@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { TaskItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { supabaseService } from '../../services/supabaseService';
 
 export interface GoalTarget {
   id: string;
@@ -115,6 +116,18 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
   const [newGoalTargetType, setNewGoalTargetType] = useState<'currency' | 'number' | 'tasks'>('tasks');
   const [newGoalTargetVal, setNewGoalTargetVal] = useState(25);
 
+  // Cloud sync for Goals
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { goals: cloudGoals } = await supabaseService.getGoals(user?.id);
+      if (mounted && cloudGoals && cloudGoals.length > 0) {
+        setGoals(cloudGoals);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [user?.id]);
+
   useEffect(() => {
     try {
       localStorage.setItem('clickup_goals_v1', JSON.stringify(goals));
@@ -164,6 +177,7 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
     };
 
     setGoals([newG, ...goals]);
+    supabaseService.saveGoal(newG, user?.id);
     setIsNewGoalModalOpen(false);
     setNewGoalName('');
     setNewGoalDesc('');
@@ -173,7 +187,7 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
   const handleUpdateTargetValue = (goalId: string, targetId: string, delta: number) => {
     setGoals(goals.map(g => {
       if (g.id !== goalId) return g;
-      return {
+      const updatedGoal = {
         ...g,
         targets: g.targets.map(t => {
           if (t.id !== targetId) return t;
@@ -181,12 +195,15 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
           return { ...t, currentValue: newVal };
         })
       };
+      supabaseService.saveGoal(updatedGoal, user?.id);
+      return updatedGoal;
     }));
   };
 
   const handleDeleteGoal = (goalId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setGoals(goals.filter(g => g.id !== goalId));
+    supabaseService.deleteGoal(goalId);
     showToast('Goal deleted');
   };
 

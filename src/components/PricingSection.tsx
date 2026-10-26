@@ -49,8 +49,28 @@ export const PricingSection: React.FC<PricingProps> = ({ onOpenWaitlist, onOpenA
             One simple price for all your work.
           </h2>
           <p style={{ fontSize: '1.1rem', color: '#5f6377' }}>
-            Get started completely free forever. Upgrade anytime as your team grows.
+            Get started completely free forever. All core features unlocked with zero subscription requirements.
           </p>
+
+          {/* Free Edition Launch Banner */}
+          <div style={{
+            margin: '20px auto 0',
+            maxWidth: '620px',
+            padding: '10px 18px',
+            backgroundColor: '#ecfdf5',
+            borderRadius: '12px',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            color: '#065f46',
+            fontSize: '0.86rem',
+            fontWeight: 600
+          }}>
+            <Sparkles size={16} color="#10b981" />
+            <span><strong>OneDesk Free Edition:</strong> 100% Free for everyone. No credit card, payment, or upgrade gate.</span>
+          </div>
 
           {/* Monthly / Yearly Toggle */}
           <div style={{

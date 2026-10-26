@@ -7,9 +7,11 @@ import {
   Zap, 
   ShieldCheck, 
   CheckCircle2,
-  Crown
+  Crown,
+  Heart
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { PRODUCT_FLAGS } from '../../config/productFlags';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -31,6 +33,147 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   if (!isOpen) return null;
+
+  // Free Edition Mode (Phase 0: Scope Freeze)
+  if (!PRODUCT_FLAGS.subscriptionsEnabled) {
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(5px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 2000,
+        padding: '20px'
+      }}>
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '24px',
+          maxWidth: '560px',
+          width: '100%',
+          overflow: 'hidden',
+          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.4)',
+          position: 'relative',
+          border: '1px solid #e2e8f0',
+          textAlign: 'center'
+        }}>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: '#f1f5f9',
+              border: 'none',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#64748b'
+            }}
+          >
+            <X size={16} />
+          </button>
+
+          <div style={{
+            padding: '36px 30px',
+            background: 'radial-gradient(ellipse at top, #faf5ff 0%, #ffffff 80%)'
+          }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)'
+            }}>
+              <Sparkles size={28} />
+            </div>
+
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: '#ecfdf5',
+              color: '#059669',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              padding: '4px 12px',
+              borderRadius: '100px',
+              marginBottom: '12px',
+              border: '1px solid rgba(16, 185, 129, 0.2)'
+            }}>
+              <CheckCircle2 size={14} />
+              <span>Free Community Edition — All Features Unlocked</span>
+            </div>
+
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0' }}>
+              OneDesk is 100% Free
+            </h2>
+            <p style={{ fontSize: '0.9rem', color: '#64748b', margin: '0 0 24px 0', lineHeight: 1.5 }}>
+              In this production release, every user and team gets access to all supported features with no credit card, checkout, or subscription required.
+            </p>
+
+            <div style={{
+              backgroundColor: '#f8fafc',
+              borderRadius: '14px',
+              padding: '16px 20px',
+              textAlign: 'left',
+              marginBottom: '24px',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}>
+              {[
+                'Unlimited Tasks, Kanban & List Views',
+                'Real-Time Channel Chat & Direct Messages',
+                'Collaborative Docs & Whiteboards',
+                'Calendar & Google Meet Scheduler',
+                'Billable Timesheets & Hours Tracking',
+                'Public Intake Forms & Responses',
+                'Strategic Goals (OKRs) & Real Dashboard Analytics',
+                'Bring-Your-Own-Key (BYOK) AI Intelligence'
+              ].map((feat, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.84rem', color: '#334155' }}>
+                  <Check size={16} color="#10b981" style={{ flexShrink: 0 }} />
+                  <span>{feat}</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={onClose}
+              style={{
+                width: '100%',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #7c3aed 0%, #ff72e5 100%)',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 16px rgba(124, 58, 237, 0.35)'
+              }}
+            >
+              Continue with Free Access
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleUpgrade = (planName: string) => {
     setIsProcessing(true);

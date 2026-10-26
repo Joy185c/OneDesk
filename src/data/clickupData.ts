@@ -2,7 +2,7 @@ import { TaskItem, ChatMessage, PricingPlan, CompetitorComparison, Testimonial }
 
 export const INITIAL_TASKS: TaskItem[] = [
   {
-    id: '1',
+    id: '11111111-1111-4111-8111-111111111111',
     key: 'CLK-10',
     title: 'Launch Mobile App in Core',
     status: 'IN PROGRESS',
@@ -18,7 +18,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     commentsCount: 16
   },
   {
-    id: '2',
+    id: '22222222-2222-4222-8222-222222222222',
     key: 'CLK-14',
     title: 'Figma token synchronization pipeline',
     status: 'IN PROGRESS',
@@ -34,7 +34,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     commentsCount: 8
   },
   {
-    id: '3',
+    id: '33333333-3333-4333-8333-333333333333',
     key: 'CLK-08',
     title: 'Executive dashboard & real-time velocity metrics',
     status: 'TODO',
@@ -50,7 +50,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     commentsCount: 3
   },
   {
-    id: '4',
+    id: '44444444-4444-4444-8444-444444444444',
     key: 'CLK-22',
     title: 'Multi-workspace permissions audit & SOC2 review',
     status: 'REVIEW',
@@ -66,7 +66,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     commentsCount: 12
   },
   {
-    id: '5',
+    id: '55555555-5555-4555-8555-555555555555',
     key: 'CLK-04',
     title: 'ClickUp AI document summary & action item extraction',
     status: 'COMPLETE',

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { supabaseService } from '../../services/supabaseService';
+import { generateUUID } from '../../lib/uuid';
 import { 
   Plus, 
   Trash2, 
@@ -584,6 +586,17 @@ export const WhiteboardView: React.FC = () => {
 
   const activeBoard = whiteboards.find(b => b.id === activeBoardId);
 
+  // Load from Supabase on mount
+  useEffect(() => {
+    let isMounted = true;
+    supabaseService.getWhiteboards(user?.id).then(({ whiteboards: cloudBoards }) => {
+      if (isMounted && cloudBoards && cloudBoards.length > 0) {
+        setWhiteboards(cloudBoards);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [user?.id]);
+
   // Sync to localStorage
   useEffect(() => {
     try {
@@ -591,10 +604,27 @@ export const WhiteboardView: React.FC = () => {
     } catch (e) {}
   }, [whiteboards, storageKey]);
 
+  // Debounced cloud autosave on active board change
+  useEffect(() => {
+    if (!activeBoardId || !activeBoard) return;
+    const timer = setTimeout(async () => {
+      await supabaseService.saveWhiteboard({
+        id: activeBoard.id,
+        title: activeBoard.title,
+        items: activeBoard.items || [],
+        strokes: activeBoard.strokes || [],
+        templateType: activeBoard.templateType
+      }, user?.id);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [activeBoard?.items, activeBoard?.strokes, activeBoardId, user?.id]);
+
   // Open or Create Template
-  const handleSelectTemplate = (templateId: string, templateTitle: string) => {
+  const handleSelectTemplate = async (templateId: string, templateTitle: string) => {
+    const boardId = generateUUID();
     const newBoard: WhiteboardData = {
-      id: 'wb-' + Date.now(),
+      id: boardId,
       title: templateTitle,
       templateType: templateId as any,
       isFavorite: false,
@@ -604,9 +634,18 @@ export const WhiteboardView: React.FC = () => {
       strokes: []
     };
 
-    setWhiteboards([newBoard, ...whiteboards]);
+    setWhiteboards(prev => [newBoard, ...prev]);
     setActiveBoardId(newBoard.id);
-    showToast(`Created "${newBoard.title}" whiteboard!`);
+
+    await supabaseService.saveWhiteboard({
+      id: boardId,
+      title: templateTitle,
+      items: newBoard.items,
+      strokes: [],
+      templateType: templateId
+    }, user?.id);
+
+    showToast(`✓ Created "${newBoard.title}" in cloud!`);
   };
 
   const handleUpdateActiveBoard = (updater: (prev: WhiteboardData) => WhiteboardData) => {
@@ -626,13 +665,14 @@ export const WhiteboardView: React.FC = () => {
     }));
   };
 
-  const handleDeleteBoard = (boardId: string, e?: React.MouseEvent) => {
+  const handleDeleteBoard = async (boardId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setWhiteboards(prev => prev.filter(b => b.id !== boardId));
     if (activeBoardId === boardId) {
       setActiveBoardId(null);
     }
-    showToast('Whiteboard deleted');
+    await supabaseService.deleteWhiteboard(boardId);
+    showToast('Whiteboard deleted from cloud');
   };
 
   // Dragging Canvas Item
