@@ -2819,34 +2819,34 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
           {/* Safe Local Storage Tasks Cloud Migration Prompt */}
           {pendingMigrationTasks.length > 0 && (
             <div style={{
-              backgroundColor: '#f5f3ff',
-              border: '1px solid #ddd6fe',
+              backgroundColor: 'var(--bg-selected, #E0EDE3)',
+              border: '1px solid var(--border-default, #DCE7DE)',
               borderRadius: '10px',
               margin: '12px 24px',
               padding: '12px 18px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              boxShadow: '0 2px 8px rgba(124, 58, 237, 0.08)'
+              boxShadow: '0 2px 8px rgba(23, 107, 80, 0.08)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
                   width: '32px',
                   height: '32px',
                   borderRadius: '8px',
-                  backgroundColor: '#7c3aed',
+                  backgroundColor: 'var(--brand-primary, #176B50)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#ffffff'
+                  color: 'var(--interactive-primary-text, #ffffff)'
                 }}>
                   <Database size={16} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1e1b4b' }}>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary, #182A22)' }}>
                     Local Tasks Detected ({pendingMigrationTasks.length})
                   </div>
-                  <div style={{ fontSize: '0.76rem', color: '#6b21a8' }}>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary, #52695B)' }}>
                     You have {pendingMigrationTasks.length} task(s) stored locally on this browser. Would you like to safely migrate them to your Supabase cloud workspace?
                   </div>
                 </div>
@@ -2856,8 +2856,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   onClick={handleConfirmMigration}
                   disabled={isMigratingTasks}
                   style={{
-                    backgroundColor: '#7c3aed',
-                    color: '#ffffff',
+                    backgroundColor: 'var(--brand-primary, #176B50)',
+                    color: 'var(--interactive-primary-text, #ffffff)',
                     border: 'none',
                     borderRadius: '6px',
                     padding: '6px 14px',
@@ -2873,8 +2873,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   onClick={handleDismissMigration}
                   style={{
                     backgroundColor: 'transparent',
-                    color: '#64748b',
-                    border: '1px solid #cbd5e1',
+                    color: 'var(--text-muted, #667B6C)',
+                    border: '1px solid var(--border-strong, #B8CDBD)',
                     borderRadius: '6px',
                     padding: '6px 12px',
                     fontSize: '0.78rem',
