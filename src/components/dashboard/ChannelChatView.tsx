@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Hash, 
   Send, 
@@ -7,6 +7,7 @@ import {
   Smile, 
   Sparkles,
   CheckCircle2,
+  CheckCheck,
   UserPlus,
   ShieldCheck,
   X,
@@ -20,6 +21,8 @@ import { memberService, WorkspaceMember } from '../../services/memberService';
 import { supabaseService } from '../../services/supabaseService';
 import { generateUUID } from '../../lib/uuid';
 import { MarkdownRenderer } from '../common/MarkdownRenderer';
+
+const MOCK_SENDERS = new Set(['Workspace Admin', 'Alex Rivera', 'Sarah Chang', 'Tester Alpha']);
 
 interface ChatMessage {
   id: string;
@@ -56,7 +59,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed: ChatMessage[] = JSON.parse(saved);
-        return parsed.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-'));
+        return parsed.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-') && !MOCK_SENDERS.has(m.sender));
       }
     } catch {}
     return [];
@@ -69,6 +72,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [selectedMemberToAdd, setSelectedMemberToAdd] = useState<string>('');
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load channel members and workspace members
   const refreshMembers = () => {
@@ -96,10 +100,10 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
     supabaseService.getChatMessages(channelKey).then(({ messages: cloudMsgs }) => {
       if (isMounted) {
         if (cloudMsgs && cloudMsgs.length > 0) {
-          const realMsgs = cloudMsgs.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-'));
+          const realMsgs = cloudMsgs.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-') && !MOCK_SENDERS.has(m.sender));
           setMessages(realMsgs);
         } else {
-          setMessages(prev => prev.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-')));
+          setMessages(prev => prev.filter(m => !m.id.startsWith('cm-') && !m.id.startsWith('cw-') && !MOCK_SENDERS.has(m.sender)));
         }
       }
     });
@@ -107,6 +111,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
     // 3. Subscribe to real-time incoming messages
     const unsubscribe = supabaseService.subscribeToChat(channelKey, (newMsg) => {
       if (!isMounted) return;
+      if (MOCK_SENDERS.has(newMsg.sender)) return;
       setMessages(prev => {
         // Prevent duplicate append
         if (prev.some(m => m.id === newMsg.id)) return prev;
@@ -126,6 +131,11 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
       localStorage.setItem(storageKey, JSON.stringify(messages));
     } catch {}
   }, [messages, channelKey, user?.id, isDemoUser]);
+
+  // Auto-scroll to bottom whenever new messages arrive or are sent
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const showToast = (msg: string) => {
     setNotificationMsg(msg);
@@ -360,11 +370,11 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
       <div style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '24px',
+        padding: '20px 24px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
-        backgroundColor: '#fbfcfe'
+        gap: '12px',
+        backgroundColor: 'var(--bg-canvas, #f8fafc)'
       }}>
         {messages.length === 0 ? (
           <div style={{
@@ -398,69 +408,203 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
             </p>
           </div>
         ) : (
-          messages.map(msg => (
-            <div 
-              key={msg.id} 
-              style={{ 
-                display: 'flex', 
-                gap: '12px',
-                backgroundColor: msg.isSystem ? 'rgba(124, 58, 237, 0.05)' : 'transparent',
-                padding: msg.isSystem ? '8px 12px' : '0',
-                borderRadius: '8px'
-              }}
-            >
-              <div style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '50%',
-                backgroundColor: msg.avatarBg || '#7c3aed',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 800,
-                fontSize: '0.82rem',
-                flexShrink: 0,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                overflow: 'hidden'
-              }}>
-                {msg.avatar || (msg.sender === currentUserName && user?.avatar) ? (
-                  <img
-                    src={msg.avatar || user?.avatar}
-                    alt={msg.sender}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  msg.initials
-                )}
-              </div>
+          messages.map(msg => {
+            if (msg.isSystem) {
+              return (
+                <div
+                  key={msg.id}
+                  style={{
+                    alignSelf: 'center',
+                    margin: '4px 0',
+                    backgroundColor: 'var(--bg-surface-secondary, #e2e8f0)',
+                    color: 'var(--text-secondary, #475569)',
+                    fontSize: '0.74rem',
+                    fontWeight: 600,
+                    padding: '5px 14px',
+                    borderRadius: '20px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                    maxWidth: '85%',
+                    textAlign: 'center'
+                  }}
+                >
+                  {msg.text}
+                </div>
+              );
+            }
 
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                  <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>
-                    {msg.sender}
-                  </span>
-                  {msg.sender === currentUserName && (
-                    <span style={{ fontSize: '0.68rem', backgroundColor: '#e0e7ff', color: '#4338ca', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                      You
-                    </span>
-                  )}
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                    {msg.timestamp}
-                  </span>
+            const isMe = msg.sender === currentUserName ||
+              (user?.name && msg.sender.toLowerCase() === user.name.toLowerCase()) ||
+              (user?.email && msg.sender.toLowerCase() === user.email.toLowerCase()) ||
+              (msg as any).userId === user?.id ||
+              (msg as any).isYou;
+
+            if (isMe) {
+              // Sender (You) on the RIGHT side
+              return (
+                <div
+                  key={msg.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'flex-end',
+                    gap: '8px',
+                    width: '100%'
+                  }}
+                >
+                  <div style={{
+                    maxWidth: '72%',
+                    minWidth: '100px',
+                    backgroundColor: 'var(--brand-primary, #176B50)',
+                    color: '#ffffff',
+                    borderRadius: '16px 16px 4px 16px',
+                    padding: '9px 13px',
+                    boxShadow: '0 2px 8px rgba(23, 107, 80, 0.22)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    wordBreak: 'break-word',
+                    position: 'relative'
+                  }}>
+                    <div style={{
+                      fontSize: '0.88rem',
+                      lineHeight: '1.45'
+                    }}>
+                      <MarkdownRenderer content={msg.text} textColor="#ffffff" />
+                    </div>
+
+                    {/* Sender Meta: Timestamp + WhatsApp Double Checkmarks */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      gap: '4px',
+                      marginTop: '3px',
+                      fontSize: '0.68rem',
+                      color: 'rgba(255, 255, 255, 0.8)'
+                    }}>
+                      <span>{msg.timestamp}</span>
+                      <CheckCheck size={14} color="#C5F277" />
+                    </div>
+                  </div>
+
+                  {/* Sender Avatar */}
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: msg.avatarBg || 'var(--brand-primary, #176B50)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                    overflow: 'hidden'
+                  }}>
+                    {user?.avatar || msg.avatar ? (
+                      <img
+                        src={user?.avatar || msg.avatar}
+                        alt={currentUserName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      userInitials
+                    )}
+                  </div>
                 </div>
-                <div style={{ 
-                  fontSize: '0.88rem', 
-                  color: msg.isSystem ? 'var(--brand-primary, #176B50)' : 'var(--text-primary, #334155)', 
-                  lineHeight: '1.45',
-                  fontWeight: msg.isSystem ? 600 : 400
+              );
+            }
+
+            // Receiver (Teammate) Bubble on the LEFT side
+            return (
+              <div
+                key={msg.id}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                  alignItems: 'flex-end',
+                  gap: '8px',
+                  width: '100%'
+                }}
+              >
+                {/* Receiver Avatar */}
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: msg.avatarBg || '#0f766e',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.08)',
+                  overflow: 'hidden'
                 }}>
-                  <MarkdownRenderer content={msg.text} />
+                  {msg.avatar ? (
+                    <img
+                      src={msg.avatar}
+                      alt={msg.sender}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    msg.initials
+                  )}
+                </div>
+
+                <div style={{
+                  maxWidth: '72%',
+                  minWidth: '100px',
+                  backgroundColor: 'var(--bg-surface, #ffffff)',
+                  border: '1px solid var(--border-default, #DCE7DE)',
+                  color: 'var(--text-primary, #182A22)',
+                  borderRadius: '16px 16px 16px 4px',
+                  padding: '9px 13px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  wordBreak: 'break-word',
+                  position: 'relative'
+                }}>
+                  {/* Teammate Sender Name Header */}
+                  <div style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    color: 'var(--brand-primary, #176B50)',
+                    marginBottom: '3px'
+                  }}>
+                    {msg.sender}
+                  </div>
+
+                  <div style={{
+                    fontSize: '0.88rem',
+                    lineHeight: '1.45',
+                    color: 'var(--text-primary, #182A22)'
+                  }}>
+                    <MarkdownRenderer content={msg.text} />
+                  </div>
+
+                  {/* Receiver Meta: Timestamp */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    gap: '4px',
+                    marginTop: '3px',
+                    fontSize: '0.68rem',
+                    color: 'var(--text-muted, #94a3b8)'
+                  }}>
+                    <span>{msg.timestamp}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Message Form */}

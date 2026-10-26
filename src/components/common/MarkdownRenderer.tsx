@@ -6,6 +6,7 @@ import { Copy, Check } from 'lucide-react';
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  textColor?: string;
 }
 
 /**
@@ -239,7 +240,7 @@ function renderInlineFormatting(text: string): React.ReactNode[] {
   return nodes.length > 0 ? nodes : [text];
 }
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '' }) => {
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '', textColor }) => {
   const elements = useMemo(() => {
     if (!content) return null;
 
@@ -477,9 +478,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
         <p
           key={`p-${result.length}`}
           style={{
-            margin: '6px 0',
-            lineHeight: 1.6,
-            color: 'var(--text-primary, #1e293b)'
+            margin: '4px 0',
+            lineHeight: 1.5,
+            color: textColor || 'var(--text-primary, #1e293b)'
           }}
         >
           {renderInlineFormatting(line)}
@@ -502,7 +503,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
     }
 
     return result;
-  }, [content]);
+  }, [content, textColor]);
 
   return <div className={`markdown-content ${className}`}>{elements}</div>;
 };
