@@ -2403,30 +2403,32 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 </span>
               </div>
 
-              {/* ClickUp Bookmark Bar (Screenshot 1) */}
-              <div style={{
-                padding: '6px 24px',
-                borderBottom: '1px solid #f1f5f9',
-                backgroundColor: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <span 
-                  onClick={() => showToast('Add bookmarks, notes, or dashboards to this space')}
-                  style={{
-                    fontSize: '0.74rem',
-                    color: '#94a3b8',
-                    backgroundColor: '#f8fafc',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    border: '1px dashed #cbd5e1',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Add bookmarks, notes, and more
-                </span>
-              </div>
+              {/* ClickUp Bookmark Bar (Screenshot 1) - shown on task views, hidden on channel chat */}
+              {activeTab !== 'channel' && (
+                <div style={{
+                  padding: '6px 24px',
+                  borderBottom: '1px solid #f1f5f9',
+                  backgroundColor: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span 
+                    onClick={() => showToast('Add bookmarks, notes, or dashboards to this space')}
+                    style={{
+                      fontSize: '0.74rem',
+                      color: '#94a3b8',
+                      backgroundColor: '#f8fafc',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      border: '1px dashed #cbd5e1',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Add bookmarks, notes, and more
+                  </span>
+                </div>
+              )}
             </>
           )}
 
@@ -3072,7 +3074,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
 
           {/* Channel Chat View (ClickUp Screenshot 1) */}
           {activeTab === 'channel' && (
-            <div style={{ flex: 1, display: 'flex' }}>
+            <div style={{ flex: 1, display: 'flex', height: '100%', overflow: 'hidden' }}>
               <ChannelChatView 
                 channelKey={activeChannel} 
                 onOpenInviteModal={() => setIsInviteOpen(true)}
