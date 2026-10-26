@@ -14,7 +14,16 @@ import {
   Plus,
   Trash2,
   Lock,
-  Crown
+  Crown,
+  AtSign,
+  Video,
+  Mic,
+  Code,
+  Maximize2,
+  MessageSquare,
+  FileText,
+  PhoneCall,
+  CheckSquare
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { memberService, WorkspaceMember } from '../../services/memberService';
@@ -43,9 +52,18 @@ const INITIAL_MESSAGES: Record<string, ChatMessage[]> = {
 interface ChannelChatViewProps {
   channelKey: string;
   onOpenInviteModal?: () => void;
+  onNavigateToList?: () => void;
+  onNavigateToDocs?: () => void;
+  onStartSyncUp?: () => void;
 }
 
-export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, onOpenInviteModal }) => {
+export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ 
+  channelKey, 
+  onOpenInviteModal,
+  onNavigateToList,
+  onNavigateToDocs,
+  onStartSyncUp
+}) => {
   const { user } = useAuth();
   const isDemoUser = user?.id === 'u_joy_1';
   const userRole = user?.role || 'Workspace Owner';
@@ -72,6 +90,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [selectedMemberToAdd, setSelectedMemberToAdd] = useState<string>('');
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+  const [inputTab, setInputTab] = useState<'message' | 'post'>('message');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load channel members and workspace members
@@ -382,30 +401,221 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '80px 20px',
-            textAlign: 'center',
-            color: 'var(--text-secondary, #64748b)'
+            padding: '30px 20px',
+            margin: 'auto',
+            maxWidth: '520px',
+            width: '100%',
+            textAlign: 'center'
           }}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              backgroundColor: 'var(--bg-selected, #E0EDE3)',
-              color: 'var(--brand-primary, #176B50)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '14px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+            <h3 style={{
+              margin: '0 0 8px 0',
+              fontSize: '1.25rem',
+              fontWeight: 800,
+              color: 'var(--text-primary, #0f172a)'
             }}>
-              <Hash size={28} />
-            </div>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary, #0f172a)' }}>
-              Welcome to #{channelKey}
+              Chat in #{channelKey === 'general' ? 'General' : channelKey}
             </h3>
-            <p style={{ margin: 0, fontSize: '0.86rem', maxWidth: '380px', lineHeight: 1.5 }}>
-              This is the start of the #{channelKey} channel. Send a message below to start collaborating with your team!
+
+            <p style={{
+              margin: '0 0 20px 0',
+              fontSize: '0.86rem',
+              color: 'var(--text-secondary, #64748b)',
+              lineHeight: 1.5,
+              maxWidth: '460px'
+            }}>
+              Collaborate seamlessly across tasks and conversations. Start chatting with your team or connect tasks to stay on top of your work.
             </p>
+
+            {/* ClickUp Top Action Buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '22px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => onOpenInviteModal ? onOpenInviteModal() : setIsMembersModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 16px',
+                  backgroundColor: '#ffffff',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  color: '#1e293b',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                }}
+              >
+                <Plus size={14} color="#64748b" />
+                <span>Add People</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => showToast('Slack integration sync ready')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '7px 16px',
+                  backgroundColor: '#ffffff',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  color: '#1e293b',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                }}
+              >
+                <span style={{ fontWeight: 900, color: '#e01e5a', fontSize: '0.9rem' }}>#</span>
+                <span>Import from Slack</span>
+              </button>
+            </div>
+
+            {/* 3 ClickUp Action Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', textAlign: 'left' }}>
+              {/* Card 1: Track Tasks */}
+              <div
+                onClick={() => onNavigateToList ? onNavigateToList() : showToast('Navigating to Tasks')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '12px 16px',
+                  backgroundColor: 'var(--bg-surface, #ffffff)',
+                  border: '1px solid var(--border-default, #e2e8f0)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'var(--brand-primary, #176B50)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'var(--border-default, #e2e8f0)';
+                  e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.02)';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: '#fdf2f8',
+                  color: '#c026d3',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <CheckSquare size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-primary, #0f172a)' }}>
+                    Track Tasks
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary, #64748b)', marginTop: '2px' }}>
+                    Manage tasks, bugs, people, and more
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Add Doc */}
+              <div
+                onClick={() => onNavigateToDocs ? onNavigateToDocs() : showToast('Navigating to Docs')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '12px 16px',
+                  backgroundColor: 'var(--bg-surface, #ffffff)',
+                  border: '1px solid var(--border-default, #e2e8f0)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'var(--brand-primary, #176B50)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'var(--border-default, #e2e8f0)';
+                  e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.02)';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: '#f0f9ff',
+                  color: '#0284c7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-primary, #0f172a)' }}>
+                    Add Doc
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary, #64748b)', marginTop: '2px' }}>
+                    Take notes or create detailed documents
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Start SyncUp */}
+              <div
+                onClick={() => onStartSyncUp ? onStartSyncUp() : showToast('Starting SyncUp voice/video session')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '12px 16px',
+                  backgroundColor: 'var(--bg-surface, #ffffff)',
+                  border: '1px solid var(--border-default, #e2e8f0)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'var(--brand-primary, #176B50)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'var(--border-default, #e2e8f0)';
+                  e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.02)';
+                }}
+              >
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: '#f0fdf4',
+                  color: '#16a34a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <PhoneCall size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-primary, #0f172a)' }}>
+                    Start SyncUp
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary, #64748b)', marginTop: '2px' }}>
+                    Jump on a voice call or video call
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           messages.map(msg => {
@@ -607,59 +817,215 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Message Form */}
-      <form onSubmit={handleSend} style={{
-        padding: '14px 24px',
-        borderTop: '1px solid #eaebf0',
-        backgroundColor: '#ffffff'
+      {/* Input Message Form (ClickUp Screenshot 1 Redesign) */}
+      <div style={{
+        padding: '10px 24px 16px',
+        borderTop: '1px solid var(--border-default, #eaebf0)',
+        backgroundColor: 'var(--bg-surface, #ffffff)'
       }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          backgroundColor: '#f8fafc',
-          border: '1.5px solid #cbd5e1',
-          borderRadius: '12px',
-          padding: '8px 14px',
-          gap: '10px'
-        }}>
-          <input
-            type="text"
-            placeholder={`Message #${channelName} as ${currentUserName}...`}
-            value={inputText}
-            onChange={e => setInputText(e.target.value)}
-            style={{
-              flex: 1,
-              border: 'none',
-              backgroundColor: 'transparent',
-              outline: 'none',
-              fontSize: '0.9rem',
-              color: '#0f172a'
-            }}
-          />
+        {/* Message / Post Tab Switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px', paddingLeft: '4px' }}>
           <button
-            type="submit"
-            disabled={!inputText.trim()}
+            type="button"
+            onClick={() => setInputTab('message')}
             style={{
-              backgroundColor: inputText.trim() ? 'var(--brand-primary, #176B50)' : '#cbd5e1',
-              color: '#ffffff',
+              background: 'none',
               border: 'none',
-              borderRadius: '8px',
-              padding: '7px 14px',
-              cursor: inputText.trim() ? 'pointer' : 'default',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              gap: '4px',
-              transition: 'background 0.15s ease'
+              borderBottom: inputTab === 'message' ? '2px solid var(--text-primary, #0f172a)' : '2px solid transparent',
+              padding: '4px 2px 6px',
+              fontSize: '0.84rem',
+              fontWeight: inputTab === 'message' ? 800 : 600,
+              color: inputTab === 'message' ? 'var(--text-primary, #0f172a)' : 'var(--text-secondary, #64748b)',
+              cursor: 'pointer'
             }}
           >
-            <Send size={14} />
-            <span>Send</span>
+            Message
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setInputTab('post')}
+            style={{
+              background: 'none',
+              border: 'none',
+              borderBottom: inputTab === 'post' ? '2px solid var(--text-primary, #0f172a)' : '2px solid transparent',
+              padding: '4px 2px 6px',
+              fontSize: '0.84rem',
+              fontWeight: inputTab === 'post' ? 800 : 600,
+              color: inputTab === 'post' ? 'var(--text-primary, #0f172a)' : 'var(--text-secondary, #64748b)',
+              cursor: 'pointer'
+            }}
+          >
+            Post
           </button>
         </div>
-      </form>
+
+        {/* Input Card Container */}
+        <form 
+          onSubmit={handleSend} 
+          style={{
+            backgroundColor: '#ffffff',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '12px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+            overflow: 'hidden'
+          }}
+        >
+          <div style={{ padding: '10px 14px' }}>
+            <input
+              type="text"
+              placeholder={`Write to ${channelKey === 'general' ? 'General' : channelKey}, press 'space' for AI, '/' for commands`}
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              style={{
+                width: '100%',
+                border: 'none',
+                backgroundColor: 'transparent',
+                outline: 'none',
+                fontSize: '0.88rem',
+                color: '#0f172a',
+                fontFamily: 'inherit'
+              }}
+            />
+          </div>
+
+          {/* ClickUp Toolbar Strip */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '6px 12px',
+            borderTop: '1px solid #f1f5f9',
+            backgroundColor: '#ffffff'
+          }}>
+            {/* Left Icons: +, AI, @, @, emoji, mic, video, paperclip, code, expand */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b' }}>
+              <button
+                type="button"
+                onClick={() => showToast('Attachment menu opened')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#64748b', display: 'flex' }}
+                title="Add task, doc, or file"
+              >
+                <Plus size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setInputText('/ai ');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '3px',
+                  color: '#7c3aed',
+                  display: 'flex'
+                }}
+                title="Ask ClickUp AI"
+              >
+                <Sparkles size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setInputText(prev => prev + '@')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#64748b', display: 'flex' }}
+                title="Mention someone"
+              >
+                <AtSign size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setInputText(prev => prev + ' 😊')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#64748b', display: 'flex' }}
+                title="Add emoji"
+              >
+                <Smile size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => showToast('Voice note recorder ready')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#64748b', display: 'flex' }}
+                title="Voice memo"
+              >
+                <Mic size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => showToast('Screen clip recorder ready')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#64748b', display: 'flex' }}
+                title="Record video clip"
+              >
+                <Video size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => showToast('File upload picker opened')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#64748b', display: 'flex' }}
+                title="Attach file"
+              >
+                <Paperclip size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setInputText(prev => prev + '\n```\n\n```')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#64748b', display: 'flex' }}
+                title="Code block"
+              >
+                <Code size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => showToast('Editor expanded')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#94a3b8', display: 'flex' }}
+                title="Expand toolbar"
+              >
+                <Maximize2 size={13} />
+              </button>
+            </div>
+
+            {/* Right Group: Mic & Send Arrow */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => showToast('Listening for voice input...')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#94a3b8', display: 'flex' }}
+                title="Voice dictation"
+              >
+                <Mic size={16} />
+              </button>
+
+              <button
+                type="submit"
+                disabled={!inputText.trim()}
+                style={{
+                  backgroundColor: inputText.trim() ? 'var(--brand-primary, #176B50)' : '#cbd5e1',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  width: '28px',
+                  height: '28px',
+                  cursor: inputText.trim() ? 'pointer' : 'default',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background 0.15s ease'
+                }}
+                title="Send message"
+              >
+                <Send size={13} />
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
 
       {/* Channel Members & Admin Add Member Modal (Requirement 3) */}
       {isMembersModalOpen && (

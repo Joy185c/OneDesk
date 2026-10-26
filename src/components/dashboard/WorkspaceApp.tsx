@@ -93,6 +93,7 @@ import { GoalsView } from './GoalsView';
 import { AppCenterModal } from './AppCenterModal';
 import { ChatLaunchpadView } from './ChatLaunchpadView';
 import { SpacesOverviewView } from './SpacesOverviewView';
+import { CalendarView } from './CalendarView';
 import { PRODUCT_FLAGS } from '../../config/productFlags';
 
 interface WorkspaceAppProps {
@@ -304,7 +305,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
   };
 
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'inbox' | 'replies' | 'assigned_comments' | 'posts' | 'board' | 'list' | 'docs' | 'forms' | 'clips' | 'goals' | 'chat_launchpad' | 'spaces_overview' | 'automations' | 'analytics' | 'planner' | 'ai' | 'teams' | 'whiteboard' | 'timesheet' | 'channel' | 'dm' | 'sprints' | 'agents'
+    'overview' | 'inbox' | 'replies' | 'assigned_comments' | 'posts' | 'board' | 'list' | 'docs' | 'forms' | 'clips' | 'goals' | 'chat_launchpad' | 'spaces_overview' | 'automations' | 'analytics' | 'planner' | 'ai' | 'teams' | 'whiteboard' | 'timesheet' | 'channel' | 'dm' | 'sprints' | 'agents' | 'calendar'
   >(getInitialTab);
 
   const [isAppCenterOpen, setIsAppCenterOpen] = useState(() => {
@@ -2272,8 +2273,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
           display: 'flex',
           flexDirection: 'column'
         }}>
-          {/* Conditional Space Header Bar & Subtabs Bar (Visible only on Space Views) */}
-          {['overview', 'board', 'list', 'docs'].includes(activeTab) && (
+          {/* Conditional Space Header Bar & Subtabs Bar (Visible on Workspace & Space Views) */}
+          {['channel', 'overview', 'board', 'list', 'docs', 'calendar'].includes(activeTab) && (
             <>
               {/* Space Header Bar */}
               <div style={{
@@ -2288,14 +2289,20 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                   <div style={{ width: '18px', height: '18px', borderRadius: '4px', backgroundColor: '#7c3aed', color: '#fff', fontSize: '0.68rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>
                     S
                   </div>
-                  <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{currentSpaceName}</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{user?.workspaceName || currentSpaceName}</span>
                   <Star size={14} color="#94a3b8" />
                 </div>
 
-                {/* Right Tools: Agents, Automate, Brain², Share */}
+                {/* Right Tools: Phone/SyncUp, Agents, Automate, Brain², Share */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.78rem', color: '#64748b' }}>
                   {PRODUCT_FLAGS.audioCallsEnabled && (
-                    <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}><Phone size={14} /></span>
+                    <span 
+                      style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      onClick={() => showToast('Starting SyncUp voice/video session')}
+                      title="Start SyncUp Call"
+                    >
+                      <Phone size={14} />
+                    </span>
                   )}
                   <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => setActiveTab('ai')}><Bot size={14} /> Agents</span>
                   <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => setActiveTab('automations')}><Zap size={14} /> Automate</span>
@@ -2304,89 +2311,120 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 </div>
               </div>
 
-              {/* Subtabs Bar (Add Channel, Overview, List, Board, Docs, + View) */}
+              {/* Subtabs Bar matching ClickUp Screenshots (# Channel, List, Board, Calendar, + View) */}
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '18px',
+                gap: '20px',
                 padding: '0 24px',
                 borderBottom: '1px solid #eaebf0',
                 backgroundColor: '#ffffff',
                 fontSize: '0.84rem',
                 fontWeight: 700
               }}>
-                <span 
-                  onClick={() => setIsNewChannelOpen(true)}
-                  style={{ color: '#64748b', cursor: 'pointer', padding: '10px 0' }}
-                >
-                  Add Channel
-                </span>
-                
+                {/* 1. # Channel Tab */}
                 <span
-                  onClick={() => setActiveTab('overview')}
+                  onClick={() => setActiveTab('channel')}
                   style={{
-                    color: activeTab === 'overview' ? '#0f172a' : '#64748b',
-                    borderBottom: activeTab === 'overview' ? '2px solid #0f172a' : 'none',
+                    color: activeTab === 'channel' ? 'var(--brand-primary, #176B50)' : '#64748b',
+                    borderBottom: activeTab === 'channel' ? '2px solid var(--brand-primary, #176B50)' : '2px solid transparent',
                     padding: '10px 0',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    transition: 'color 0.15s ease'
                   }}
                 >
-                  <span>ℹ️</span> Overview
+                  <Hash size={15} color={activeTab === 'channel' ? 'var(--brand-primary, #176B50)' : '#64748b'} />
+                  <span>Channel</span>
                 </span>
 
+                {/* 2. List Tab */}
                 <span
                   onClick={() => setActiveTab('list')}
                   style={{
-                    color: activeTab === 'list' ? '#0f172a' : '#64748b',
-                    borderBottom: activeTab === 'list' ? '2px solid #0f172a' : 'none',
+                    color: activeTab === 'list' ? 'var(--brand-primary, #176B50)' : '#64748b',
+                    borderBottom: activeTab === 'list' ? '2px solid var(--brand-primary, #176B50)' : '2px solid transparent',
                     padding: '10px 0',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    transition: 'color 0.15s ease'
                   }}
                 >
-                  <ListTodo size={14} /> List
+                  <ListTodo size={15} />
+                  <span>List</span>
                 </span>
 
+                {/* 3. Board Tab */}
                 <span
                   onClick={() => setActiveTab('board')}
                   style={{
-                    color: activeTab === 'board' ? '#0f172a' : '#64748b',
-                    borderBottom: activeTab === 'board' ? '2px solid #0f172a' : 'none',
+                    color: activeTab === 'board' ? 'var(--brand-primary, #176B50)' : '#64748b',
+                    borderBottom: activeTab === 'board' ? '2px solid var(--brand-primary, #176B50)' : '2px solid transparent',
                     padding: '10px 0',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    transition: 'color 0.15s ease'
                   }}
                 >
-                  <Kanban size={14} /> Board
+                  <Kanban size={15} />
+                  <span>Board</span>
                 </span>
 
+                {/* 4. Calendar Tab */}
                 <span
-                  onClick={() => setActiveTab('docs')}
+                  onClick={() => setActiveTab('calendar')}
                   style={{
-                    color: activeTab === 'docs' ? '#0f172a' : '#64748b',
-                    borderBottom: activeTab === 'docs' ? '2px solid #0f172a' : 'none',
+                    color: activeTab === 'calendar' ? 'var(--brand-primary, #176B50)' : '#64748b',
+                    borderBottom: activeTab === 'calendar' ? '2px solid var(--brand-primary, #176B50)' : '2px solid transparent',
                     padding: '10px 0',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    transition: 'color 0.15s ease'
                   }}
                 >
-                  <FileText size={14} /> Docs
+                  <Calendar size={15} color={activeTab === 'calendar' ? 'var(--brand-primary, #176B50)' : '#64748b'} />
+                  <span>Calendar</span>
                 </span>
 
+                {/* 5. + View Customization */}
                 <span 
                   onClick={() => showToast('View customization drawer opened')}
                   style={{ color: '#94a3b8', cursor: 'pointer', padding: '10px 0' }}
                 >
                   + View
+                </span>
+              </div>
+
+              {/* ClickUp Bookmark Bar (Screenshot 1) */}
+              <div style={{
+                padding: '6px 24px',
+                borderBottom: '1px solid #f1f5f9',
+                backgroundColor: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span 
+                  onClick={() => showToast('Add bookmarks, notes, or dashboards to this space')}
+                  style={{
+                    fontSize: '0.74rem',
+                    color: '#94a3b8',
+                    backgroundColor: '#f8fafc',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    border: '1px dashed #cbd5e1',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Add bookmarks, notes, and more
                 </span>
               </div>
             </>
@@ -3032,12 +3070,29 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
             </div>
           )}
 
-          {/* Channel Chat View */}
+          {/* Channel Chat View (ClickUp Screenshot 1) */}
           {activeTab === 'channel' && (
             <div style={{ flex: 1, display: 'flex' }}>
               <ChannelChatView 
                 channelKey={activeChannel} 
-                onOpenInviteModal={() => setIsInviteOpen(true)} 
+                onOpenInviteModal={() => setIsInviteOpen(true)}
+                onNavigateToList={() => setActiveTab('list')}
+                onNavigateToDocs={() => setActiveTab('docs')}
+                onStartSyncUp={() => showToast('Starting SyncUp voice/video session')}
+              />
+            </div>
+          )}
+
+          {/* Calendar View (ClickUp Screenshot 4) */}
+          {activeTab === 'calendar' && (
+            <div style={{ flex: 1, display: 'flex', height: '100%', overflow: 'hidden' }}>
+              <CalendarView 
+                tasks={filteredTasks}
+                onSelectTask={setSelectedTask}
+                onOpenNewTaskModal={(date) => {
+                  setDefaultNewStatus('TODO');
+                  setIsNewTaskOpen(true);
+                }}
               />
             </div>
           )}
