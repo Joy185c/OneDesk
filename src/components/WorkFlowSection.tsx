@@ -23,12 +23,14 @@ import {
 import { FIGMA_CHAT_MESSAGES } from '../data/clickupData';
 import { ChatMessage } from '../types';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface WorkFlowSectionProps {
   onOpenWaitlist: () => void;
 }
 
 export const WorkFlowSection: React.FC<WorkFlowSectionProps> = ({ onOpenWaitlist }) => {
+  const { isAuthenticated } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>(FIGMA_CHAT_MESSAGES);
   const [newComment, setNewComment] = useState('');
   const [taskStatus, setTaskStatus] = useState('IN PROGRESS');
@@ -416,7 +418,7 @@ export const WorkFlowSection: React.FC<WorkFlowSectionProps> = ({ onOpenWaitlist
             </p>
 
             <Link
-              to="/workspace"
+              to={isAuthenticated ? "/workspace" : "/signup"}
               className="btn-emerald"
               style={{
                 fontSize: '1.05rem',
@@ -427,7 +429,7 @@ export const WorkFlowSection: React.FC<WorkFlowSectionProps> = ({ onOpenWaitlist
                 gap: '8px'
               }}
             >
-              <span>Open Interactive Workspace</span>
+              <span>{isAuthenticated ? 'Open Interactive Workspace' : 'Get Started with OneDesk'}</span>
               <ArrowRight size={16} />
             </Link>
           </div>

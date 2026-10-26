@@ -11,8 +11,10 @@ import {
   Users
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export const ContextConvergenceSection: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   return (
     <section style={{
       padding: '100px 0',
@@ -266,7 +268,7 @@ export const ContextConvergenceSection: React.FC = () => {
           </div>
 
           <Link
-            to="/workspace"
+            to={isAuthenticated ? "/workspace" : "/signup"}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -276,10 +278,11 @@ export const ContextConvergenceSection: React.FC = () => {
               background: 'linear-gradient(135deg, #7b68ee 0%, #ff72e5 100%)',
               color: '#ffffff',
               fontWeight: 800,
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              textDecoration: 'none'
             }}
           >
-            <span>Test the Convergence Workspace</span>
+            <span>{isAuthenticated ? 'Open Convergence Workspace' : 'Get Started Free'}</span>
             <ArrowRight size={15} />
           </Link>
         </div>

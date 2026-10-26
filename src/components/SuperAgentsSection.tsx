@@ -13,8 +13,10 @@ import {
   Workflow
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export const SuperAgentsSection: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
 
   const superpowers = [
@@ -256,11 +258,11 @@ Last Action (12m ago): Triage Agent verified bug #892 and assigned to Alex River
             </div>
 
             <Link
-              to="/workspace"
+              to={isAuthenticated ? "/workspace" : "/signup"}
               className="btn-primary"
               style={{ padding: '12px 24px', fontSize: '0.92rem' }}
             >
-              <span>Explore Super Agents in App</span>
+              <span>{isAuthenticated ? 'Explore Super Agents in App' : 'Get Started with Super Agents'}</span>
               <ArrowRight size={16} />
             </Link>
           </div>

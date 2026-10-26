@@ -63,7 +63,7 @@ type ActiveMegaMenu = 'brain' | 'product' | 'solutions' | 'learn' | null;
 export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGoToWorkspace }) => {
   const [activeMenu, setActiveMenu] = useState<ActiveMegaMenu>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -257,37 +257,85 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
             Get a Demo
           </Link>
 
-          <Link
-            to="/login"
-            style={{
-              fontSize: '0.92rem',
-              fontWeight: 600,
-              color: '#0f172a',
-              backgroundColor: '#f1f5f9',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              textDecoration: 'none'
-            }}
-          >
-            Login
-          </Link>
+          {/* Auth State Conditional Navigation */}
+          {isAuthenticated && user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Link
+                to="/workspace"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 14px',
+                  fontSize: '0.86rem',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
+                  boxShadow: '0 3px 12px rgba(23, 107, 80, 0.3)',
+                  textDecoration: 'none'
+                }}
+                className="app-shortcut"
+              >
+                <span>Workspace</span>
+                <ArrowRight size={13} />
+              </Link>
 
-          <Link
-            to="/signup"
-            style={{
-              fontSize: '0.92rem',
-              fontWeight: 700,
-              color: 'var(--interactive-primary-text, #ffffff)',
-              backgroundColor: 'var(--interactive-primary, #176B50)',
-              padding: '8px 18px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              textDecoration: 'none'
-            }}
-          >
-            Sign Up
-          </Link>
+              <button
+                type="button"
+                onClick={async () => {
+                  await logout();
+                  navigate('/');
+                }}
+                style={{
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: 'var(--text-secondary, #64748b)',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '6px 8px'
+                }}
+                title="Sign out of OneDesk"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Link
+                to="/login"
+                style={{
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  color: '#0f172a',
+                  backgroundColor: '#f1f5f9',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  textDecoration: 'none'
+                }}
+              >
+                Login
+              </Link>
+
+              <Link
+                to="/signup"
+                style={{
+                  fontSize: '0.92rem',
+                  fontWeight: 700,
+                  color: 'var(--interactive-primary-text, #ffffff)',
+                  backgroundColor: 'var(--interactive-primary, #176B50)',
+                  padding: '8px 18px',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  textDecoration: 'none'
+                }}
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
 
           {/* Theme Toggle Button */}
           <button
@@ -309,32 +357,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-
-          {/* Quick Workspace Shortcut */}
-          <Link
-            to="/workspace"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              fontSize: '0.86rem',
-              fontWeight: 800,
-              color: '#ffffff',
-              borderRadius: '8px',
-              background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
-              boxShadow: '0 3px 12px rgba(23, 107, 80, 0.3)'
-            }}
-            className="app-shortcut"
-          >
-            <style>{`
-              @media (max-width: 1180px) {
-                .app-shortcut { display: none !important; }
-              }
-            `}</style>
-            <span>Workspace</span>
-            <ArrowRight size={13} />
-          </Link>
 
           {/* Mobile hamburger */}
           <button 
@@ -925,45 +947,72 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
           flexDirection: 'column',
           gap: '12px'
         }}>
-          <Link to="/workspace" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 800, color: '#7b68ee' }}>
-            ⚡ Open Workspace App
-          </Link>
+          {isAuthenticated && (
+            <Link to="/workspace" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 800, color: 'var(--brand-primary, #176B50)' }}>
+              ⚡ Open Workspace App
+            </Link>
+          )}
           <Link to="/pricing" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#1e293b' }}>
             Pricing
           </Link>
           <Link to="/compare" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#1e293b' }}>
             Compare
           </Link>
-          <Link 
-            to="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{
-              padding: '10px',
-              backgroundColor: '#f1f5f9',
-              color: '#0f172a',
-              borderRadius: '8px',
-              fontWeight: 600,
-              textAlign: 'center',
-              textDecoration: 'none'
-            }}
-          >
-            Login
-          </Link>
-          <Link 
-            to="/signup"
-            onClick={() => setMobileMenuOpen(false)}
-            style={{
-              padding: '10px',
-              backgroundColor: '#111827',
-              color: '#ffffff',
-              borderRadius: '8px',
-              fontWeight: 700,
-              textAlign: 'center',
-              textDecoration: 'none'
-            }}
-          >
-            Sign Up
-          </Link>
+          {isAuthenticated ? (
+            <button
+              type="button"
+              onClick={async () => {
+                setMobileMenuOpen(false);
+                await logout();
+                navigate('/');
+              }}
+              style={{
+                padding: '10px',
+                backgroundColor: '#fef2f2',
+                color: '#dc2626',
+                borderRadius: '8px',
+                fontWeight: 700,
+                textAlign: 'center',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              Sign Out
+            </button>
+          ) : (
+            <>
+              <Link 
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#f1f5f9',
+                  color: '#0f172a',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                  textDecoration: 'none'
+                }}
+              >
+                Login
+              </Link>
+              <Link 
+                to="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  padding: '10px',
+                  backgroundColor: 'var(--brand-primary, #176B50)',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  textAlign: 'center',
+                  textDecoration: 'none'
+                }}
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       )}
     </header>

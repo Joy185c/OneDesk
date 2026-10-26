@@ -29,6 +29,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface HeroProps {
   onOpenWaitlist: () => void;
@@ -50,6 +51,7 @@ export type HeroFeatureTab =
   | 'dashboards';
 
 export const Hero: React.FC<HeroProps> = ({ onOpenWaitlist, onOpenAuth }) => {
+  const { isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [activeTab, setActiveTab] = useState<HeroFeatureTab>('overview');
 
@@ -305,9 +307,13 @@ export const Hero: React.FC<HeroProps> = ({ onOpenWaitlist, onOpenAuth }) => {
             <span>•</span>
             <span>No credit card required</span>
             <span>•</span>
-            <Link to="/workspace" style={{ color: '#7b68ee', fontWeight: 700, textDecoration: 'underline' }}>
-              Instant Demo Mode
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/workspace" style={{ color: 'var(--brand-primary, #176B50)', fontWeight: 700, textDecoration: 'underline' }}>
+                Open Your Workspace →
+              </Link>
+            ) : (
+              <span>Full team collaboration</span>
+            )}
           </div>
         </div>
 
@@ -433,20 +439,21 @@ export const Hero: React.FC<HeroProps> = ({ onOpenWaitlist, onOpenAuth }) => {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Link 
-                to="/workspace"
+                to={isAuthenticated ? "/workspace" : "/login"}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
                   fontSize: '0.76rem',
                   fontWeight: 700,
-                  color: '#7b68ee',
-                  backgroundColor: 'rgba(123, 104, 238, 0.15)',
+                  color: 'var(--brand-primary, #176B50)',
+                  backgroundColor: 'rgba(23, 107, 80, 0.12)',
                   padding: '4px 10px',
-                  borderRadius: '6px'
+                  borderRadius: '6px',
+                  textDecoration: 'none'
                 }}
               >
-                <span>Launch Full App</span>
+                <span>{isAuthenticated ? 'Launch Full App' : 'Sign In to Workspace'}</span>
                 <ArrowRight size={12} />
               </Link>
             </div>
@@ -592,7 +599,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenWaitlist, onOpenAuth }) => {
                       Drag, modify, and manage tasks across workflows.
                     </p>
                   </div>
-                  <Link to="/workspace" className="btn-primary" style={{ fontSize: '0.82rem', padding: '6px 14px' }}>
+                  <Link to={isAuthenticated ? "/workspace" : "/login"} className="btn-primary" style={{ fontSize: '0.82rem', padding: '6px 14px' }}>
                     <Plus size={14} /> Add Task
                   </Link>
                 </div>
@@ -885,7 +892,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenWaitlist, onOpenAuth }) => {
                       Collaborate in real-time and convert any bullet point directly into a tracked task.
                     </p>
                   </div>
-                  <Link to="/workspace" className="btn-primary" style={{ fontSize: '0.82rem', padding: '6px 14px' }}>
+                  <Link to={isAuthenticated ? "/workspace" : "/login"} className="btn-primary" style={{ fontSize: '0.82rem', padding: '6px 14px' }}>
                     Open Docs Editor
                   </Link>
                 </div>
