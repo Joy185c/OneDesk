@@ -58,15 +58,16 @@ import {
 } from 'lucide-react';
 import { TaskItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { MarkdownRenderer } from '../common/MarkdownRenderer';
 
-// ClickUp AI Petal Icon
+// ClickUp AI Petal Icon (Themed to Alpine Sage / Obsidian Forest)
 const ClickUpAIPetalIcon: React.FC<{ size?: number }> = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path d="M12 2C10.5 5 10.5 7.5 12 9.2C13.5 7.5 13.5 5 12 2Z" fill="#ff70a6" />
-    <path d="M22 12C19 10.5 16.5 10.5 14.8 12C16.5 13.5 19 13.5 22 12Z" fill="#70d6ff" />
-    <path d="M12 22C13.5 19 13.5 16.5 12 14.8C10.5 16.5 10.5 19 12 22Z" fill="#ff9770" />
-    <path d="M2 12C5 13.5 7.5 13.5 9.2 12C7.5 10.5 5.5 10.5 2 12Z" fill="#a78bfa" />
-    <circle cx="12" cy="12" r="3.2" fill="#ec4899" />
+    <path d="M12 2C10.5 5 10.5 7.5 12 9.2C13.5 7.5 13.5 5 12 2Z" fill="var(--brand-sage, #55D6A0)" />
+    <path d="M22 12C19 10.5 16.5 10.5 14.8 12C16.5 13.5 19 13.5 22 12Z" fill="var(--brand-primary, #176B50)" />
+    <path d="M12 22C13.5 19 13.5 16.5 12 14.8C10.5 16.5 10.5 19 12 22Z" fill="var(--brand-forest, #123D32)" />
+    <path d="M2 12C5 13.5 7.5 13.5 9.2 12C7.5 10.5 5.5 10.5 2 12Z" fill="var(--brand-highlight, #C5F277)" />
+    <circle cx="12" cy="12" r="3.2" fill="var(--brand-primary, #176B50)" />
   </svg>
 );
 
@@ -866,7 +867,7 @@ Assist the user with clear, structured markdown, actionable bullet points, or co
     // Default Fallback Simulation
     await new Promise(r => setTimeout(r, 600));
     return {
-      text: `### 🌸 ClickUp Brain² Response
+      text: `### 🧠 OneDesk Brain² Response
 I have analyzed your query against all active docs, workspace tasks, and knowledge bases in **${workspaceName}**.
 
 **Key Highlights**:
@@ -875,7 +876,7 @@ I have analyzed your query against all active docs, workspace tasks, and knowled
 - Realtime vector knowledge index: **Up to date**.
 
 💡 *Pro Tip: Connect your personal OpenAI, Google Gemini, or Groq API key in **AI Settings** to unlock unlimited custom LLM reasoning across your entire organization!*`,
-      providerUsed: 'ClickUp Brain (Standard)',
+      providerUsed: 'OneDesk Brain (Standard)',
       modelUsed: 'Brain² Standard'
     };
   };
@@ -1840,8 +1841,8 @@ I have analyzed your query against all active docs, workspace tasks, and knowled
                             <span style={{ fontWeight: 800, fontSize: '0.86rem', color: '#0f172a' }}>{currentUserName}</span>
                             <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{msg.timestamp}</span>
                           </div>
-                          <div style={{ fontSize: '0.92rem', color: '#1e293b', lineHeight: 1.5 }}>
-                            {msg.text}
+                          <div style={{ fontSize: '0.92rem', color: 'var(--text-primary, #1e293b)', lineHeight: 1.5 }}>
+                            <MarkdownRenderer content={msg.text} />
                           </div>
                         </div>
                       </div>
@@ -1901,15 +1902,14 @@ I have analyzed your query against all active docs, workspace tasks, and knowled
                             </div>
                           )}
 
-                          {/* Response markdown text */}
+                          {/* Response markdown text with KaTeX LaTeX math & markdown support */}
                           <div style={{
                             fontSize: '0.92rem',
-                            color: '#1e293b',
+                            color: 'var(--text-primary, #1e293b)',
                             lineHeight: 1.6,
-                            marginBottom: '14px',
-                            whiteSpace: 'pre-wrap'
+                            marginBottom: '14px'
                           }}>
-                            {msg.text}
+                            <MarkdownRenderer content={msg.text} />
                           </div>
 
                           {/* Action icons row matching Screenshot 2: 👍 👎 💬 📋 */}

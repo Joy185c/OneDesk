@@ -19,6 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { memberService, WorkspaceMember } from '../../services/memberService';
 import { supabaseService } from '../../services/supabaseService';
 import { generateUUID } from '../../lib/uuid';
+import { MarkdownRenderer } from '../common/MarkdownRenderer';
 
 interface ChatMessage {
   id: string;
@@ -442,11 +443,11 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
               </div>
               <div style={{ 
                 fontSize: '0.88rem', 
-                color: msg.isSystem ? '#7c3aed' : '#334155', 
+                color: msg.isSystem ? 'var(--brand-primary, #176B50)' : 'var(--text-primary, #334155)', 
                 lineHeight: '1.45',
                 fontWeight: msg.isSystem ? 600 : 400
               }}>
-                {msg.text}
+                <MarkdownRenderer content={msg.text} />
               </div>
             </div>
           </div>
