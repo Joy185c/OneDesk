@@ -230,20 +230,20 @@ export const AiAgentsView: React.FC = () => {
             width: '32px',
             height: '32px',
             borderRadius: '8px',
-            background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)',
+            background: 'var(--ai-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #75B98B 100%))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(124, 58, 237, 0.3)'
+            boxShadow: '0 2px 8px rgba(23, 107, 80, 0.3)'
           }}>
             <Bot size={18} color="#ffffff" />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary, #0f172a)', margin: 0 }}>
               AI Super Agents
             </h2>
-            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-              Autonomous ClickUp AI Agents working 24/7 across your tasks, docs, and integrations
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary, #64748b)' }}>
+              Autonomous OneDesk AI Agents working 24/7 across your tasks, docs, and integrations
             </div>
           </div>
         </div>
@@ -251,8 +251,8 @@ export const AiAgentsView: React.FC = () => {
         <button
           onClick={() => setIsNewAgentModalOpen(true)}
           style={{
-            backgroundColor: '#7c3aed',
-            color: '#ffffff',
+            backgroundColor: 'var(--brand-primary, #176B50)',
+            color: 'var(--interactive-primary-text, #ffffff)',
             border: 'none',
             borderRadius: '6px',
             padding: '8px 16px',

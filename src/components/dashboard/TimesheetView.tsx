@@ -962,7 +962,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                   width: '32px',
                   height: '18px',
                   borderRadius: '10px',
-                  backgroundColor: hideWeekends ? '#7c3aed' : '#cbd5e1',
+                  backgroundColor: hideWeekends ? 'var(--brand-primary, #176B50)' : '#cbd5e1',
                   padding: '2px',
                   cursor: 'pointer',
                   display: 'flex',
@@ -1889,7 +1889,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      backgroundColor: '#7c3aed',
+                      backgroundColor: 'var(--brand-primary, #176B50)',
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '8px',
@@ -2340,8 +2340,8 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                 type="button"
                 onClick={handleSaveModalEntry}
                 style={{
-                  backgroundColor: '#7c3aed',
-                  color: '#ffffff',
+                  backgroundColor: 'var(--brand-primary, #176B50)',
+                  color: 'var(--interactive-primary-text, #ffffff)',
                   border: 'none',
                   borderRadius: '8px',
                   padding: '8px 22px',
@@ -2472,7 +2472,7 @@ export const TimesheetView: React.FC<TimesheetViewProps> = ({
                     width: '32px',
                     height: '18px',
                     borderRadius: '10px',
-                    backgroundColor: autoApproveEnabled ? '#7c3aed' : '#cbd5e1',
+                    backgroundColor: autoApproveEnabled ? 'var(--brand-primary, #176B50)' : '#cbd5e1',
                     padding: '2px',
                     cursor: 'pointer',
                     display: 'flex',

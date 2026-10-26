@@ -56,7 +56,7 @@ const getDefaultGoals = (ownerName: string, ownerInitials: string): GoalItem[] =
     description: 'Accelerate outbound sales CRM demos and close 12 key enterprise deals before year end.',
     owner: ownerName,
     ownerInitials: ownerInitials,
-    color: '#7c3aed',
+    color: 'var(--brand-primary, #176B50)',
     icon: '🎯',
     dueDate: 'Dec 31, 2026',
     status: 'on_track',
@@ -109,7 +109,7 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
   // New Goal Form State
   const [newGoalName, setNewGoalName] = useState('');
   const [newGoalDesc, setNewGoalDesc] = useState('');
-  const [newGoalColor, setNewGoalColor] = useState('#7c3aed');
+  const [newGoalColor, setNewGoalColor] = useState('#176B50');
   const [newGoalIcon, setNewGoalIcon] = useState('🎯');
   const [newGoalDueDate, setNewGoalDueDate] = useState('2026-12-31');
   const [newGoalTargetName, setNewGoalTargetName] = useState('Sprint Deliverables Completed');
@@ -232,8 +232,8 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
               width: '26px',
               height: '26px',
               borderRadius: '6px',
-              backgroundColor: '#7c3aed',
-              color: '#ffffff',
+              backgroundColor: 'var(--brand-primary, #176B50)',
+              color: 'var(--interactive-primary-text, #ffffff)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -942,8 +942,8 @@ export const GoalsView: React.FC<{ tasks?: TaskItem[] }> = ({ tasks = [] }) => {
                   padding: '9px',
                   borderRadius: '8px',
                   border: 'none',
-                  backgroundColor: '#7c3aed',
-                  color: '#ffffff',
+                  backgroundColor: 'var(--brand-primary, #176B50)',
+                  color: 'var(--interactive-primary-text, #ffffff)',
                   fontSize: '0.84rem',
                   fontWeight: 700,
                   cursor: 'pointer',

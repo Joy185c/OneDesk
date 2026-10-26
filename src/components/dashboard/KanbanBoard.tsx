@@ -88,7 +88,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <span style={{
                   fontSize: '0.8rem',
                   fontWeight: 800,
-                  color: progressPercent >= 75 ? '#16a34a' : '#7c3aed',
+                  color: progressPercent >= 75 ? 'var(--status-success, #16a34a)' : 'var(--brand-primary, #176B50)',
                   backgroundColor: progressPercent >= 75 ? '#dcfce7' : '#faf5ff',
                   padding: '1px 8px',
                   borderRadius: '100px'
@@ -215,7 +215,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           <div style={{
             width: `${progressPercent}%`,
             height: '100%',
-            backgroundColor: progressPercent === 100 ? '#16a34a' : '#7c3aed',
+            backgroundColor: progressPercent === 100 ? 'var(--status-success, #16a34a)' : 'var(--brand-primary, #176B50)',
             transition: 'width 0.3s ease',
             borderRadius: '100px'
           }} />
@@ -378,7 +378,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                               padding: '3px 8px',
                               backgroundColor: '#faf5ff',
                               border: '1px solid #e9d5ff',
-                              color: '#7c3aed',
+                              color: 'var(--brand-primary, #176B50)',
                               borderRadius: '6px',
                               fontSize: '0.7rem',
                               fontWeight: 700,

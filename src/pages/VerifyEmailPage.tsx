@@ -172,7 +172,7 @@ export const VerifyEmailPage: React.FC = () => {
             width: '100%',
             padding: '12px',
             borderRadius: '10px',
-            background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+            background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
             color: '#ffffff',
             fontSize: '0.92rem',
             fontWeight: 700,
@@ -181,7 +181,7 @@ export const VerifyEmailPage: React.FC = () => {
             justifyContent: 'center',
             gap: '8px',
             textDecoration: 'none',
-            boxShadow: '0 8px 24px rgba(124, 58, 237, 0.35)',
+            boxShadow: '0 8px 24px rgba(23, 107, 80, 0.35)',
             boxSizing: 'border-box',
             transition: 'transform 0.15s'
           }}

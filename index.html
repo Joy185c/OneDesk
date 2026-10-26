@@ -2,10 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%237b68ee'/><stop offset='100%' stop-color='%23ff72e5'/></linearGradient></defs><rect width='100' height='100' rx='28' fill='url(%23g)'/><path d='M30 50 L45 65 L72 34' fill='none' stroke='white' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23123D32'/><stop offset='55%' stop-color='%23176B50'/><stop offset='100%' stop-color='%2358A681'/></linearGradient></defs><rect width='100' height='100' rx='28' fill='url(%23g)'/><path d='M30 50 L45 65 L72 34' fill='none' stroke='white' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ClickUp™ 3.0 — The Everything App For Work</title>
-    <meta name="description" content="One app to replace them all. Tasks, Docs, Chat, Goals, and Whiteboards. Save 1 day every week with ClickUp 3.0." />
+    <title>OneDesk — Alpine Sage × Obsidian Forest</title>
+    <meta name="description" content="OneDesk — The All-in-One Cloud Work Management Platform." />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('onedesk_theme');
+          var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

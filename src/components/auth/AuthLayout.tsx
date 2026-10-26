@@ -13,23 +13,23 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#090d16',
-      backgroundImage: 'radial-gradient(circle at 50% 15%, rgba(124, 58, 237, 0.18) 0%, rgba(9, 13, 22, 1) 70%)',
+      backgroundColor: 'var(--bg-canvas, #091B17)',
+      backgroundImage: 'radial-gradient(circle at 50% 15%, rgba(23, 107, 80, 0.25) 0%, var(--bg-canvas, #091B17) 70%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '32px 16px',
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-      color: '#ffffff',
+      color: 'var(--text-primary, #ffffff)',
       boxSizing: 'border-box'
     }}>
       <div style={{
         maxWidth: '460px',
         width: '100%',
-        backgroundColor: '#111726',
+        backgroundColor: 'var(--bg-surface, #132B22)',
         borderRadius: '24px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 30px 80px rgba(0, 0, 0, 0.6), 0 0 50px rgba(124, 58, 237, 0.12)',
+        border: '1px solid var(--border-default, rgba(255, 255, 255, 0.1))',
+        boxShadow: '0 30px 80px rgba(0, 0, 0, 0.6), 0 0 50px rgba(23, 107, 80, 0.15)',
         padding: '36px 32px',
         position: 'relative',
         boxSizing: 'border-box'
@@ -41,7 +41,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
           left: '20%',
           right: '20%',
           height: '2px',
-          background: 'linear-gradient(90deg, transparent, #7c3aed, #ec4899, transparent)'
+          background: 'linear-gradient(90deg, transparent, #176B50, #55D6A0, transparent)'
         }} />
 
         {/* Brand Header */}
@@ -51,11 +51,11 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
               width: '42px',
               height: '42px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)',
+              background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 6px 20px rgba(124, 58, 237, 0.35)'
+              boxShadow: '0 6px 20px rgba(23, 107, 80, 0.35)'
             }}>
               <ShieldCheck size={22} color="#ffffff" />
             </div>
@@ -76,9 +76,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
               <span style={{
                 fontSize: '0.72rem',
                 fontWeight: 700,
-                color: '#a78bfa',
-                backgroundColor: 'rgba(124, 58, 237, 0.15)',
-                border: '1px solid rgba(124, 58, 237, 0.3)',
+                color: '#55D6A0',
+                backgroundColor: 'rgba(23, 107, 80, 0.2)',
+                border: '1px solid rgba(85, 214, 160, 0.3)',
                 padding: '3px 10px',
                 borderRadius: '100px',
                 letterSpacing: '0.04em',

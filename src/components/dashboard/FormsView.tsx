@@ -783,7 +783,7 @@ export const FormsView: React.FC = () => {
               </button>
               <button
                 onClick={handleSaveForm}
-                style={{ backgroundColor: '#7c3aed', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+                style={{ backgroundColor: 'var(--brand-primary, #176B50)', color: 'var(--interactive-primary-text, #ffffff)', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
               >
                 Save Form
               </button>

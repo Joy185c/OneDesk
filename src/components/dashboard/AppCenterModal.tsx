@@ -268,7 +268,7 @@ export const AppCenterModal: React.FC<{
                 width: '32px',
                 height: '32px',
                 borderRadius: '8px',
-                backgroundColor: '#7c3aed',
+                backgroundColor: 'var(--brand-primary, #176B50)',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',

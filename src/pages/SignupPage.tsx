@@ -122,7 +122,7 @@ export const SignupPage: React.FC = () => {
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
+              onFocus={(e) => e.target.style.borderColor = 'var(--brand-primary, #176B50)'}
               onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
             />
           </div>
@@ -152,7 +152,7 @@ export const SignupPage: React.FC = () => {
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
+              onFocus={(e) => e.target.style.borderColor = 'var(--brand-primary, #176B50)'}
               onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
             />
           </div>
@@ -292,7 +292,7 @@ export const SignupPage: React.FC = () => {
             id="terms"
             checked={agreeTerms}
             onChange={(e) => setAgreeTerms(e.target.checked)}
-            style={{ accentColor: '#7c3aed', cursor: 'pointer', marginTop: '3px' }}
+            style={{ accentColor: 'var(--brand-primary, #176B50)', cursor: 'pointer', marginTop: '3px' }}
           />
           <label htmlFor="terms" style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.4, cursor: 'pointer' }}>
             I agree to the OneDesk Terms of Service and Privacy Policy.
@@ -307,7 +307,7 @@ export const SignupPage: React.FC = () => {
             padding: '12px',
             borderRadius: '10px',
             border: 'none',
-            background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+            background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
             color: '#ffffff',
             fontSize: '0.92rem',
             fontWeight: 700,
@@ -316,7 +316,7 @@ export const SignupPage: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: '0 8px 24px rgba(124, 58, 237, 0.35)',
+            boxShadow: '0 8px 24px rgba(23, 107, 80, 0.35)',
             marginTop: '6px',
             transition: 'transform 0.15s'
           }}

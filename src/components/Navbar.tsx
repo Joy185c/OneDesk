@@ -44,9 +44,12 @@ import {
   Code,
   Megaphone,
   Compass,
-  FileCheck
+  FileCheck,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
@@ -61,6 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
   const [activeMenu, setActiveMenu] = useState<ActiveMegaMenu>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleMenuHover = (menu: ActiveMegaMenu) => {
@@ -77,8 +81,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
         position: 'sticky',
         top: 0,
         zIndex: 1000,
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e5e7eb',
+        backgroundColor: 'var(--bg-surface, #ffffff)',
+        borderBottom: '1px solid var(--border-subtle, #e5e7eb)',
         transition: 'all 0.15s ease'
       }}
       onMouseLeave={handleMenuLeave}
@@ -92,17 +96,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
       }}>
         {/* Brand Logo & Main Nav Links */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-          {/* Logo matching exact ClickUp branding */}
+          {/* Logo matching OneDesk Alpine Sage identity */}
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div style={{
               width: '28px',
               height: '28px',
               borderRadius: '8px',
-              background: 'linear-gradient(135deg, #7b68ee 0%, #ff72e5 100%)',
+              background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 3px 10px rgba(123, 104, 238, 0.35)'
+              boxShadow: '0 3px 10px rgba(23, 107, 80, 0.3)'
             }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M4 14L9 19L20 6" stroke="white" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"/>
@@ -113,9 +117,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
               fontWeight: 900,
               fontSize: '1.45rem',
               letterSpacing: '-0.04em',
-              color: '#0f172a'
+              color: 'var(--text-primary, #0f172a)'
             }}>
-              ClickUp
+              OneDesk
             </span>
           </Link>
 
@@ -274,8 +278,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
             style={{
               fontSize: '0.92rem',
               fontWeight: 700,
-              color: '#ffffff',
-              backgroundColor: '#111827',
+              color: 'var(--interactive-primary-text, #ffffff)',
+              backgroundColor: 'var(--interactive-primary, #176B50)',
               padding: '8px 18px',
               borderRadius: '8px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -284,6 +288,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
           >
             Sign Up
           </Link>
+
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '34px',
+              height: '34px',
+              borderRadius: '8px',
+              backgroundColor: theme === 'dark' ? '#132B22' : '#F0F4F0',
+              border: theme === 'dark' ? '1px solid #2C4538' : '1px solid #DCE7DE',
+              color: theme === 'dark' ? '#C5F277' : '#176B50',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            title={theme === 'dark' ? 'Switch to Alpine Sage (Light Mode)' : 'Switch to Obsidian Forest (Dark Mode)'}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
 
           {/* Quick Workspace Shortcut */}
           <Link
@@ -297,8 +322,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenWaitlist, onOpenAuth, onGo
               fontWeight: 800,
               color: '#ffffff',
               borderRadius: '8px',
-              background: 'linear-gradient(135deg, #7b68ee 0%, #ff72e5 100%)',
-              boxShadow: '0 3px 12px rgba(123, 104, 238, 0.3)'
+              background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
+              boxShadow: '0 3px 12px rgba(23, 107, 80, 0.3)'
             }}
             className="app-shortcut"
           >

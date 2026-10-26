@@ -273,7 +273,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               padding: '2px 8px',
               borderRadius: '6px',
               backgroundColor: status === 'COMPLETE' ? '#dcfce7' : '#ede9fe',
-              color: status === 'COMPLETE' ? '#16a34a' : '#7c3aed'
+              color: status === 'COMPLETE' ? '#16a34a' : 'var(--brand-primary, #176B50)'
             }}>
               Current: {status}
             </span>
@@ -354,7 +354,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               <img
                 src={task.assignee.avatar}
                 alt=""
-                style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #7c3aed' }}
+                style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--brand-primary, #176B50)' }}
               />
               <select
                 value={members.find(m => m.name === assigneeName)?.id || ''}
@@ -557,7 +557,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {activities.map(act => (
                 <div key={act.id} style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#7c3aed' }} />
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--brand-primary, #176B50)' }} />
                   <span style={{ fontWeight: 600, color: '#334155' }}>{act.text}</span>
                   <span style={{ color: '#94a3b8' }}>• {act.time}</span>
                 </div>

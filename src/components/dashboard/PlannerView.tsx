@@ -167,7 +167,7 @@ const INITIAL_EVENTS: CalendarEvent[] = [
     durationHours: 24,
     isAllDay: true,
     color: '#7e22ce',
-    bgColor: '#f3e8ff',
+    bgColor: 'var(--bg-selected, #E0EDE3)',
     borderColor: '#e9d5ff',
     textColor: '#7e22ce',
     type: 'all-day',
@@ -196,10 +196,10 @@ const INITIAL_EVENTS: CalendarEvent[] = [
     dateStr: '2026-10-25',
     startHour: 10,
     durationHours: 1.5,
-    color: '#7c3aed',
-    bgColor: '#f5f3ff',
-    borderColor: '#ddd6fe',
-    textColor: '#5b21b6',
+    color: '#176B50',
+    bgColor: '#E6EFE8',
+    borderColor: '#A8C5B2',
+    textColor: '#123D32',
     type: 'meeting',
     meetingUrl: 'https://meet.google.com/cup-sprt-sync',
     attendees: ['Joy Sarkar', 'Mugdho', 'Sarah Chen'],
@@ -316,7 +316,7 @@ export const PlannerView: React.FC = () => {
   })();
 
   const TEAMMATES: Teammate[] = [
-    { id: 'tm-1', name: `${currentUserName} (You)`, email: user?.email || 'user@workspace.local', avatar: userInitials, color: '#7c3aed', status: 'available', role: 'Workspace Owner' },
+    { id: 'tm-1', name: `${currentUserName} (You)`, email: user?.email || 'user@workspace.local', avatar: userInitials, color: '#176B50', status: 'available', role: 'Workspace Owner' },
     { id: 'tm-2', name: 'Junaed Al Mugdho', email: 'junaedalmugdho@gmail.com', avatar: '👓', color: '#2563eb', status: 'available', role: 'Lead Product Designer' },
     { id: 'tm-3', name: 'Alex Rivera', email: 'alex.rivera@clickup.team', avatar: 'AR', color: '#059669', status: 'available', role: 'Product Manager' },
     { id: 'tm-4', name: 'Sarah Chen', email: 'sarah.chen@clickup.team', avatar: 'SC', color: '#d97706', status: 'in_meeting', role: 'QA & Test Engineer' },
@@ -388,7 +388,7 @@ export const PlannerView: React.FC = () => {
   const [eventFormDuration, setEventFormDuration] = useState<number>(1);
   const [eventFormTitle, setEventFormTitle] = useState<string>('');
   const [eventFormType, setEventFormType] = useState<'meeting' | 'focus' | 'task' | 'all-day'>('meeting');
-  const [eventFormColor, setEventFormColor] = useState<string>('#7c3aed');
+  const [eventFormColor, setEventFormColor] = useState<string>('#176B50');
   const [eventFormWithMeet, setEventFormWithMeet] = useState<boolean>(true);
   const [eventFormDescription, setEventFormDescription] = useState<string>('');
   const [eventFormAttendee, setEventFormAttendee] = useState<string>(currentUserName);
@@ -483,7 +483,7 @@ export const PlannerView: React.FC = () => {
 
   // Colors Palette
   const colorPresets = [
-    { label: 'Purple', color: '#7c3aed', bgColor: '#f5f3ff', borderColor: '#ddd6fe', textColor: '#5b21b6' },
+    { label: 'Forest', color: '#176B50', bgColor: '#E6EFE8', borderColor: '#A8C5B2', textColor: '#123D32' },
     { label: 'Blue', color: '#2563eb', bgColor: '#eff6ff', borderColor: '#bfdbfe', textColor: '#1d4ed8' },
     { label: 'Emerald', color: '#059669', bgColor: '#ecfdf5', borderColor: '#a7f3d0', textColor: '#047857' },
     { label: 'Amber', color: '#d97706', bgColor: '#fffbeb', borderColor: '#fde68a', textColor: '#b45309' },
@@ -514,7 +514,7 @@ export const PlannerView: React.FC = () => {
     setEventFormDuration(1);
     setEventFormTitle('');
     setEventFormType(isAllDay ? 'all-day' : 'meeting');
-    setEventFormColor('#7c3aed');
+    setEventFormColor('#176B50');
     setEventFormWithMeet(true);
     setEventFormDescription('');
     setEventFormAttendee(currentUserName);
@@ -644,10 +644,10 @@ export const PlannerView: React.FC = () => {
       startHour: targetHour,
       durationHours: 1,
       type: 'task',
-      color: '#7c3aed',
+      color: 'var(--brand-primary, #176B50)',
       bgColor: '#faf5ff',
       borderColor: '#e9d5ff',
-      textColor: '#6b21a8',
+      textColor: 'var(--brand-primary, #176B50)',
       description: `Time-blocked for priority task: ${prio.title}`,
       attendees: [currentUserName]
     };
@@ -888,7 +888,7 @@ export const PlannerView: React.FC = () => {
                       <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#a855f7' }} />
                       <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1e1f21' }}>Update color tokens</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.74rem', color: '#7c3aed', fontWeight: 600 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.74rem', color: 'var(--brand-primary, #176B50)', fontWeight: 600 }}>
                       <span>📅 17 Mar</span>
                       <span>⌛ 4h</span>
                     </div>
@@ -901,13 +901,13 @@ export const PlannerView: React.FC = () => {
                     backgroundColor: '#fbf9fe',
                     padding: '14px',
                     borderRadius: '10px',
-                    border: '1px solid #f3e8ff'
+                    border: '1px solid var(--bg-selected, #E0EDE3)'
                   }}>
-                    <div style={{ backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '8px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700 }}>
+                    <div style={{ backgroundColor: 'var(--bg-selected, #E0EDE3)', color: 'var(--brand-primary, #176B50)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700 }}>
                       Design Sprint Feedback
                       <div style={{ fontSize: '0.68rem', fontWeight: 500, color: '#9333ea', marginTop: '2px' }}>12 - 1pm</div>
                     </div>
-                    <div style={{ backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '8px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700 }}>
+                    <div style={{ backgroundColor: 'var(--bg-selected, #E0EDE3)', color: 'var(--brand-primary, #176B50)', padding: '8px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700 }}>
                       Calendar Squad Sync
                       <div style={{ fontSize: '0.68rem', fontWeight: 500, color: '#9333ea', marginTop: '2px' }}>1 - 2pm</div>
                     </div>
@@ -1193,7 +1193,7 @@ export const PlannerView: React.FC = () => {
                         onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
                         onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                       >
-                        <CalendarCheck size={14} color="#7c3aed" />
+                        <CalendarCheck size={14} color="var(--brand-primary, #176B50)" />
                         <span>New Calendar Event</span>
                       </div>
 
@@ -1256,7 +1256,7 @@ export const PlannerView: React.FC = () => {
                     style={{
                       border: 'none',
                       background: 'none',
-                      color: '#7c3aed',
+                      color: 'var(--brand-primary, #176B50)',
                       fontSize: '0.72rem',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -1287,7 +1287,7 @@ export const PlannerView: React.FC = () => {
                       style={{
                         backgroundColor: 'transparent',
                         border: 'none',
-                        color: '#7c3aed',
+                        color: 'var(--brand-primary, #176B50)',
                         fontSize: '0.76rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -1368,9 +1368,9 @@ export const PlannerView: React.FC = () => {
                             onClick={() => handleSchedulePriorityOnCalendar(prio)}
                             title="Block time on Calendar"
                             style={{
-                              backgroundColor: '#f5f3ff',
-                              border: '1px solid #ddd6fe',
-                              color: '#7c3aed',
+                              backgroundColor: 'var(--bg-selected, #E0EDE3)',
+                              border: '1px solid var(--border-strong, #B8CDBD)',
+                              color: 'var(--brand-primary, #176B50)',
                               borderRadius: '4px',
                               padding: '2px 6px',
                               fontSize: '0.68rem',
@@ -1515,7 +1515,7 @@ export const PlannerView: React.FC = () => {
                         title="Click to schedule on calendar"
                       >
                         <span style={{ color: '#1e1f21', fontWeight: 600 }}>Q4 Roadmap Deck</span>
-                        <Zap size={11} color="#7c3aed" />
+                        <Zap size={11} color="var(--brand-primary, #176B50)" />
                       </div>
 
                       <div
@@ -1526,7 +1526,7 @@ export const PlannerView: React.FC = () => {
                         title="Click to schedule on calendar"
                       >
                         <span style={{ color: '#1e1f21', fontWeight: 600 }}>Supabase Reconnects</span>
-                        <Zap size={11} color="#7c3aed" />
+                        <Zap size={11} color="var(--brand-primary, #176B50)" />
                       </div>
 
                       <div
@@ -1537,7 +1537,7 @@ export const PlannerView: React.FC = () => {
                         title="Click to schedule on calendar"
                       >
                         <span style={{ color: '#1e1f21', fontWeight: 600 }}>Mobile Nav Polish</span>
-                        <Zap size={11} color="#7c3aed" />
+                        <Zap size={11} color="var(--brand-primary, #176B50)" />
                       </div>
                     </div>
                   )}
@@ -1705,9 +1705,9 @@ export const PlannerView: React.FC = () => {
                   <button
                     onClick={() => setWeekOffset(0)}
                     style={{
-                      border: '1px solid #ddd6fe',
-                      backgroundColor: '#f5f3ff',
-                      color: '#7c3aed',
+                      border: '1px solid var(--border-strong, #B8CDBD)',
+                      backgroundColor: 'var(--bg-selected, #E0EDE3)',
+                      color: 'var(--brand-primary, #176B50)',
                       borderRadius: '6px',
                       padding: '2px 8px',
                       fontSize: '0.74rem',
@@ -1785,7 +1785,7 @@ export const PlannerView: React.FC = () => {
                             fontSize: '0.8rem',
                             color: calendarViewMode === mode ? '#7c3aed' : '#1e1f21',
                             fontWeight: calendarViewMode === mode ? 700 : 500,
-                            backgroundColor: calendarViewMode === mode ? '#f5f3ff' : 'transparent',
+                            backgroundColor: calendarViewMode === mode ? 'var(--bg-selected, #E0EDE3)' : 'transparent',
                             cursor: 'pointer'
                           }}
                         >
@@ -1806,7 +1806,7 @@ export const PlannerView: React.FC = () => {
                   title="Day View (Today)"
                   style={{
                     border: '1px solid #e2e8f0',
-                    backgroundColor: calendarViewMode === 'Day' ? '#f5f3ff' : '#ffffff',
+                    backgroundColor: calendarViewMode === 'Day' ? 'var(--bg-selected, #E0EDE3)' : '#ffffff',
                     color: calendarViewMode === 'Day' ? '#7c3aed' : '#334155',
                     borderRadius: '6px',
                     padding: '5px 8px',
@@ -1826,7 +1826,7 @@ export const PlannerView: React.FC = () => {
                 <button
                   onClick={() => handleOpenNewEvent(0, 10, false)}
                   style={{
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: 'var(--brand-primary, #176B50)',
                     border: 'none',
                     color: '#ffffff',
                     borderRadius: '6px',
@@ -1915,7 +1915,7 @@ export const PlannerView: React.FC = () => {
                           <Sun size={13} color="#64748b" />
                           <span>Lighten non-working</span>
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#7c3aed', fontWeight: 600 }}>{lightenNonWorking ? 'ON' : 'OFF'}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--brand-primary, #176B50)', fontWeight: 600 }}>{lightenNonWorking ? 'ON' : 'OFF'}</span>
                       </div>
 
                       <div
@@ -1931,7 +1931,7 @@ export const PlannerView: React.FC = () => {
                           <CalendarIcon size={13} color="#64748b" />
                           <span>Show week numbers</span>
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#7c3aed', fontWeight: 600 }}>{showWeekNumbers ? 'ON' : 'OFF'}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--brand-primary, #176B50)', fontWeight: 600 }}>{showWeekNumbers ? 'ON' : 'OFF'}</span>
                       </div>
 
                       <div
@@ -2363,8 +2363,8 @@ export const PlannerView: React.FC = () => {
                         style={{
                           padding: '6px 12px',
                           borderRadius: '6px',
-                          border: selectedDayIndex === idx ? '1.5px solid #7c3aed' : '1px solid #e2e8f0',
-                          backgroundColor: selectedDayIndex === idx ? '#f5f3ff' : '#ffffff',
+                          border: selectedDayIndex === idx ? '1.5px solid var(--brand-primary, #176B50)' : '1px solid #e2e8f0',
+                          backgroundColor: selectedDayIndex === idx ? 'var(--bg-selected, #E0EDE3)' : '#ffffff',
                           color: selectedDayIndex === idx ? '#7c3aed' : '#475569',
                           fontWeight: 700,
                           fontSize: '0.76rem',
@@ -2483,7 +2483,7 @@ export const PlannerView: React.FC = () => {
                                 gap: '6px'
                               }}
                               onMouseEnter={e => {
-                                e.currentTarget.style.borderColor = '#7c3aed';
+                                e.currentTarget.style.borderColor = 'var(--brand-primary, #176B50)';
                                 e.currentTarget.style.color = '#7c3aed';
                               }}
                               onMouseLeave={e => {
@@ -2551,7 +2551,7 @@ export const PlannerView: React.FC = () => {
                           flexDirection: 'column',
                           cursor: dateNum ? 'pointer' : 'default'
                         }}
-                        onMouseEnter={e => { if (dateNum) e.currentTarget.style.borderColor = '#7c3aed'; }}
+                        onMouseEnter={e => { if (dateNum) e.currentTarget.style.borderColor = 'var(--brand-primary, #176B50)'; }}
                         onMouseLeave={e => { if (dateNum) e.currentTarget.style.borderColor = '#e2e8f0'; }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -2596,7 +2596,7 @@ export const PlannerView: React.FC = () => {
                             </div>
                           ))}
                           {dayEvts.length > 2 && (
-                            <span style={{ fontSize: '0.62rem', color: '#7c3aed', fontWeight: 700 }}>
+                            <span style={{ fontSize: '0.62rem', color: 'var(--brand-primary, #176B50)', fontWeight: 700 }}>
                               +{dayEvts.length - 2} more
                             </span>
                           )}
@@ -2658,7 +2658,7 @@ export const PlannerView: React.FC = () => {
                     showToast('ClickUp Meeting Agent activated');
                   }}
                   style={{
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: 'var(--brand-primary, #176B50)',
                     border: 'none',
                     color: '#ffffff',
                     borderRadius: '4px',
@@ -2719,7 +2719,7 @@ export const PlannerView: React.FC = () => {
                       borderRadius: '6px'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#7c3aed' }} />
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--brand-primary, #176B50)' }} />
                         <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e1f21' }}>
                           {events[0]?.title}
                         </span>
@@ -2767,7 +2767,7 @@ export const PlannerView: React.FC = () => {
                           <span>{cmd.title}</span>
                         </div>
                         {cmd.status && (
-                          <span style={{ fontSize: '0.7rem', color: '#7c3aed', fontWeight: 700 }}>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--brand-primary, #176B50)', fontWeight: 700 }}>
                             {cmd.status}
                           </span>
                         )}
@@ -2807,7 +2807,7 @@ export const PlannerView: React.FC = () => {
                 height: '42px',
                 backgroundColor: '#ffffff',
                 borderRadius: '100px',
-                border: isCommandPopoverOpen ? '1.5px solid #7c3aed' : '1px solid #e2e8f0',
+                border: isCommandPopoverOpen ? '1.5px solid var(--brand-primary, #176B50)' : '1px solid #e2e8f0',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06)',
                 display: 'flex',
                 alignItems: 'center',
@@ -2884,7 +2884,7 @@ export const PlannerView: React.FC = () => {
               backgroundColor: '#f8f9fa'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CalendarCheck size={18} color="#7c3aed" />
+                <CalendarCheck size={18} color="var(--brand-primary, #176B50)" />
                 <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e1f21' }}>
                   {editingEvent ? 'Edit Calendar Event' : 'New Calendar Event'}
                 </span>
@@ -3133,7 +3133,7 @@ export const PlannerView: React.FC = () => {
                     type="submit"
                     style={{
                       padding: '8px 20px',
-                      backgroundColor: '#7c3aed',
+                      backgroundColor: 'var(--brand-primary, #176B50)',
                       border: 'none',
                       borderRadius: '6px',
                       fontSize: '0.84rem',
@@ -3255,7 +3255,7 @@ export const PlannerView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  style={{ padding: '8px 20px', backgroundColor: '#7c3aed', border: 'none', borderRadius: '6px', fontSize: '0.84rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}
+                  style={{ padding: '8px 20px', backgroundColor: 'var(--brand-primary, #176B50)', border: 'none', borderRadius: '6px', fontSize: '0.84rem', fontWeight: 700, color: '#ffffff', cursor: 'pointer' }}
                 >
                   Add Priority
                 </button>

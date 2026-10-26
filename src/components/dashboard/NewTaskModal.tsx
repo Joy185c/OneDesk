@@ -165,7 +165,7 @@ export const NewTaskModal: React.FC<NewTaskModalProps> = ({
               padding: '6px 10px',
               backgroundColor: '#f8fafc'
             }}>
-              <User size={16} color="#7c3aed" style={{ marginRight: '8px' }} />
+              <User size={16} color="var(--brand-primary, #176B50)" style={{ marginRight: '8px' }} />
               <select
                 value={selectedMemberId}
                 onChange={(e) => setSelectedMemberId(e.target.value)}

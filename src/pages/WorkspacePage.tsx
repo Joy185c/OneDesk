@@ -136,7 +136,7 @@ export const WorkspacePage: React.FC = () => {
           left: '25%',
           right: '25%',
           height: '2px',
-          background: 'linear-gradient(90deg, transparent, #7c3aed, #ec4899, transparent)'
+          background: 'linear-gradient(90deg, transparent, #176B50, #55D6A0, transparent)'
         }} />
 
         {/* Icon */}
@@ -144,12 +144,12 @@ export const WorkspacePage: React.FC = () => {
           width: '56px',
           height: '56px',
           borderRadius: '16px',
-          background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)',
+          background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto 18px',
-          boxShadow: '0 8px 24px rgba(124, 58, 237, 0.4)'
+          boxShadow: '0 8px 24px rgba(23, 107, 80, 0.4)'
         }}>
           <Lock size={26} color="#ffffff" />
         </div>

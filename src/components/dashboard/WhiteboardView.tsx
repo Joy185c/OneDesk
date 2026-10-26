@@ -1325,8 +1325,8 @@ export const WhiteboardView: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  backgroundColor: '#7c3aed',
-                  color: '#ffffff',
+                  backgroundColor: 'var(--brand-primary, #176B50)',
+                  color: 'var(--interactive-primary-text, #ffffff)',
                   border: 'none',
                   borderRadius: '8px',
                   padding: '6px 14px',
@@ -1365,8 +1365,8 @@ export const WhiteboardView: React.FC = () => {
                   borderRadius: '8px',
                   border: 'none',
                   cursor: 'pointer',
-                  backgroundColor: activeTool === 'select' ? '#f3e8ff' : 'transparent',
-                  color: activeTool === 'select' ? '#7c3aed' : '#64748b'
+                  backgroundColor: activeTool === 'select' ? 'var(--bg-selected, #E0EDE3)' : 'transparent',
+                  color: activeTool === 'select' ? 'var(--brand-primary, #176B50)' : '#64748b'
                 }}
                 title="Select & Move (V)"
               >
@@ -1380,8 +1380,8 @@ export const WhiteboardView: React.FC = () => {
                   borderRadius: '8px',
                   border: 'none',
                   cursor: 'pointer',
-                  backgroundColor: activeTool === 'sticky' ? '#f3e8ff' : 'transparent',
-                  color: activeTool === 'sticky' ? '#7c3aed' : '#64748b'
+                  backgroundColor: activeTool === 'sticky' ? 'var(--bg-selected, #E0EDE3)' : 'transparent',
+                  color: activeTool === 'sticky' ? 'var(--brand-primary, #176B50)' : '#64748b'
                 }}
                 title="Place Sticky Note (S)"
               >
@@ -1395,8 +1395,8 @@ export const WhiteboardView: React.FC = () => {
                   borderRadius: '8px',
                   border: 'none',
                   cursor: 'pointer',
-                  backgroundColor: activeTool === 'rect' ? '#f3e8ff' : 'transparent',
-                  color: activeTool === 'rect' ? '#7c3aed' : '#64748b'
+                  backgroundColor: activeTool === 'rect' ? 'var(--bg-selected, #E0EDE3)' : 'transparent',
+                  color: activeTool === 'rect' ? 'var(--brand-primary, #176B50)' : '#64748b'
                 }}
                 title="Card Block (R)"
               >
@@ -1410,8 +1410,8 @@ export const WhiteboardView: React.FC = () => {
                   borderRadius: '8px',
                   border: 'none',
                   cursor: 'pointer',
-                  backgroundColor: activeTool === 'pen' ? '#f3e8ff' : 'transparent',
-                  color: activeTool === 'pen' ? '#7c3aed' : '#64748b'
+                  backgroundColor: activeTool === 'pen' ? 'var(--bg-selected, #E0EDE3)' : 'transparent',
+                  color: activeTool === 'pen' ? 'var(--brand-primary, #176B50)' : '#64748b'
                 }}
                 title="Pen & Freehand Drawing (P)"
               >

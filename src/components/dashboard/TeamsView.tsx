@@ -126,7 +126,7 @@ interface TeamsViewProps {
   onOpenUpgradeModal?: () => void;
 }
 
-const COLOR_PALETTE = ['#7c3aed', '#2563eb', '#059669', '#db2777', '#ea580c', '#0891b2', '#4f46e5'];
+const COLOR_PALETTE = ['#176B50', '#2563eb', '#059669', '#db2777', '#ea580c', '#0891b2', '#123D32'];
 
 export const TeamsView: React.FC<TeamsViewProps> = ({ 
   tasks = [], 
@@ -270,7 +270,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
   // Form states for Create Team
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamDescription, setNewTeamDescription] = useState('');
-  const [newTeamColor, setNewTeamColor] = useState('#7c3aed');
+  const [newTeamColor, setNewTeamColor] = useState('#176B50');
 
   // Form states for Add Member
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([currentUserMember.id]);
@@ -1756,8 +1756,8 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                       }}
                       style={{
                         width: '100%',
-                        backgroundColor: '#7c3aed',
-                        color: '#ffffff',
+                        backgroundColor: 'var(--brand-primary, #176B50)',
+                        color: 'var(--interactive-primary-text, #ffffff)',
                         border: 'none',
                         borderRadius: '8px',
                         padding: '9px 14px',
@@ -1943,7 +1943,7 @@ export const TeamsView: React.FC<TeamsViewProps> = ({
                             style={{
                               width: '18px',
                               height: '90px',
-                              backgroundColor: '#7c3aed',
+                              backgroundColor: 'var(--brand-primary, #176B50)',
                               borderRadius: '4px 4px 0 0',
                               marginBottom: '4px',
                               cursor: 'pointer'

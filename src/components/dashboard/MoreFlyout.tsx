@@ -22,7 +22,7 @@ export const MoreFlyout: React.FC<MoreFlyoutProps> = ({
       name: 'Projects',
       icon: (
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="3" width="7" height="9" rx="1.5" fill="#7c3aed" />
+          <rect x="3" y="3" width="7" height="9" rx="1.5" fill="var(--brand-primary, #176B50)" />
           <rect x="14" y="3" width="7" height="5" rx="1.5" fill="#a855f7" />
           <rect x="14" y="12" width="7" height="9" rx="1.5" fill="#6366f1" />
           <rect x="3" y="16" width="7" height="5" rx="1.5" fill="#8b5cf6" />
@@ -135,7 +135,7 @@ export const MoreFlyout: React.FC<MoreFlyoutProps> = ({
           <path d="M9 15H15" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
           <defs>
             <linearGradient id="agentBgGrad" x1="4" y1="5" x2="20" y2="19" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#7c3aed" />
+              <stop stopColor="var(--brand-primary, #176B50)" />
               <stop offset="1" stopColor="#ec4899" />
             </linearGradient>
           </defs>
@@ -164,7 +164,7 @@ export const MoreFlyout: React.FC<MoreFlyoutProps> = ({
       icon: (
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="12" width="5" height="9" rx="1.5" fill="#a855f7" />
-          <rect x="10" y="5" width="5" height="16" rx="1.5" fill="#7c3aed" />
+          <rect x="10" y="5" width="5" height="16" rx="1.5" fill="var(--brand-primary, #176B50)" />
           <rect x="17" y="9" width="5" height="12" rx="1.5" fill="#3b82f6" />
         </svg>
       )

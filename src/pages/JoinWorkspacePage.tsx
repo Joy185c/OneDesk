@@ -145,7 +145,7 @@ export const JoinWorkspacePage: React.FC = () => {
           left: '20%',
           right: '20%',
           height: '2px',
-          background: 'linear-gradient(90deg, transparent, #7c3aed, #ec4899, transparent)'
+          background: 'linear-gradient(90deg, transparent, #176B50, #55D6A0, transparent)'
         }} />
 
         {joinedSuccess ? (
@@ -401,8 +401,8 @@ export const JoinWorkspacePage: React.FC = () => {
                 style={{
                   marginTop: '10px',
                   padding: '13px 20px',
-                  backgroundColor: '#7c3aed',
-                  backgroundImage: 'linear-gradient(135deg, #7c3aed, #9333ea)',
+                  backgroundColor: 'var(--brand-primary, #176B50)',
+                  backgroundImage: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '10px',
@@ -413,7 +413,7 @@ export const JoinWorkspacePage: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 8px 25px rgba(124, 58, 237, 0.45)',
+                  boxShadow: '0 8px 25px rgba(23, 107, 80, 0.45)',
                   transition: 'transform 0.15s, opacity 0.15s'
                 }}
               >

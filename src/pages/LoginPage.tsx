@@ -96,7 +96,7 @@ export const LoginPage: React.FC = () => {
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
+              onFocus={(e) => e.target.style.borderColor = 'var(--brand-primary, #176B50)'}
               onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
             />
           </div>
@@ -111,7 +111,7 @@ export const LoginPage: React.FC = () => {
               to="/forgot-password"
               style={{
                 fontSize: '0.78rem',
-                color: '#a78bfa',
+                color: 'var(--brand-sage, #55D6A0)',
                 textDecoration: 'none',
                 fontWeight: 600
               }}
@@ -143,7 +143,7 @@ export const LoginPage: React.FC = () => {
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
+              onFocus={(e) => e.target.style.borderColor = 'var(--brand-primary, #176B50)'}
               onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
             />
             <button
@@ -172,7 +172,7 @@ export const LoginPage: React.FC = () => {
             id="remember"
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
-            style={{ accentColor: '#7c3aed', cursor: 'pointer' }}
+            style={{ accentColor: 'var(--brand-primary, #176B50)', cursor: 'pointer' }}
           />
           <label htmlFor="remember" style={{ fontSize: '0.8rem', color: '#94a3b8', cursor: 'pointer' }}>
             Keep me signed in
@@ -187,7 +187,7 @@ export const LoginPage: React.FC = () => {
             padding: '12px',
             borderRadius: '10px',
             border: 'none',
-            background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+            background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
             color: '#ffffff',
             fontSize: '0.92rem',
             fontWeight: 700,
@@ -196,7 +196,7 @@ export const LoginPage: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: '0 8px 24px rgba(124, 58, 237, 0.35)',
+            boxShadow: '0 8px 24px rgba(23, 107, 80, 0.35)',
             marginTop: '8px',
             transition: 'transform 0.15s'
           }}

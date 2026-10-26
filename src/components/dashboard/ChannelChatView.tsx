@@ -179,7 +179,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
     const newMsg: ChatMessage = {
       id: messageId,
       sender: currentUserName,
-      avatarBg: isAdmin ? '#059669' : '#7c3aed',
+      avatarBg: isAdmin ? '#176B50' : '#123D32',
       initials: userInitials,
       text: inputText.trim(),
       timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
@@ -486,7 +486,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
             type="submit"
             disabled={!inputText.trim()}
             style={{
-              backgroundColor: inputText.trim() ? '#7c3aed' : '#cbd5e1',
+              backgroundColor: inputText.trim() ? 'var(--brand-primary, #176B50)' : '#cbd5e1',
               color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
@@ -544,7 +544,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
                   width: '36px',
                   height: '36px',
                   borderRadius: '10px',
-                  backgroundColor: '#7c3aed',
+                  backgroundColor: 'var(--brand-primary, #176B50)',
                   color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
@@ -613,7 +613,7 @@ export const ChannelChatView: React.FC<ChannelChatViewProps> = ({ channelKey, on
                         onClick={handleAddMemberToChannel}
                         style={{
                           padding: '8px 16px',
-                          backgroundColor: '#7c3aed',
+                          backgroundColor: 'var(--brand-primary, #176B50)',
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '8px',

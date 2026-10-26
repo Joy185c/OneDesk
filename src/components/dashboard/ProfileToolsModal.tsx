@@ -40,10 +40,13 @@ import {
   Camera,
   Upload,
   Edit2,
-  User as UserIcon
+  User as UserIcon,
+  Sun,
+  Moon
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { TaskItem } from '../../types';
 
 interface ProfileToolsModalProps {
@@ -76,6 +79,7 @@ export const ProfileToolsModal: React.FC<ProfileToolsModalProps> = ({
   >('none');
 
   const { user: authUser, updateProfile } = useAuth();
+  const { theme, setTheme, toggleTheme } = useTheme();
 
   // Profile update state
   const [editName, setEditName] = useState(authUser?.name || user.name);
@@ -472,7 +476,7 @@ export const ProfileToolsModal: React.FC<ProfileToolsModalProps> = ({
             { id: 'edit_profile', label: 'Edit Profile & Avatar', icon: <Edit2 size={15} color="#7c3aed" />, action: () => setActiveModal('edit_profile') },
             { id: 'settings', label: 'Settings', icon: <Settings size={15} color="#64748b" />, action: () => setActiveModal('settings') },
             { id: 'notifications', label: 'Notifications', icon: <Bell size={15} color="#64748b" />, action: () => showToast('Notification preferences loaded') },
-            { id: 'themes', label: 'Themes', icon: <Palette size={15} color="#64748b" />, action: () => setActiveModal('themes') },
+            { id: 'themes', label: theme === 'dark' ? 'Theme: Obsidian Forest (Dark)' : 'Theme: Alpine Sage (Light)', icon: theme === 'dark' ? <Moon size={15} color="#55D6A0" /> : <Sun size={15} color="#176B50" />, action: () => setActiveModal('themes') },
             { id: 'shortcuts', label: 'Keyboard shortcuts', icon: <Command size={15} color="#64748b" />, action: () => setActiveModal('shortcuts') },
             { id: 'download', label: 'Download ClickUp', icon: <Download size={15} color="#64748b" />, ext: true, action: () => setActiveModal('download') },
             { id: 'help', label: 'Help', icon: <HelpCircle size={15} color="#64748b" />, extra: <Bug size={13} color="#94a3b8" />, action: () => setActiveModal('help') }
@@ -1521,6 +1525,178 @@ export const ProfileToolsModal: React.FC<ProfileToolsModalProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* 8. MODAL: THEME SELECTION (Alpine Sage × Obsidian Forest)          */}
+      {/* =================================================================== */}
+      {activeModal === 'themes' && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            width: '520px',
+            backgroundColor: 'var(--bg-surface, #ffffff)',
+            borderRadius: '16px',
+            boxShadow: 'var(--shadow-floating)',
+            border: '1px solid var(--border-default, #DCE7DE)',
+            overflow: 'hidden',
+            color: 'var(--text-primary, #182A22)'
+          }}>
+            <div style={{
+              padding: '16px 20px',
+              borderBottom: '1px solid var(--border-subtle, #E8EEE9)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: 'var(--bg-surface-secondary, #F0F4F0)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Palette size={18} color="var(--brand-primary, #176B50)" />
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: 'var(--text-primary, #182A22)' }}>
+                  Theme & Visual Identity
+                </h3>
+              </div>
+              <button 
+                onClick={() => setActiveModal('none')} 
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-secondary, #52695B)' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: '20px' }}>
+              <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary, #52695B)', marginBottom: '18px', lineHeight: 1.5 }}>
+                Select your preferred theme identity. Switches seamlessly without refreshing your workspace or losing active work.
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {/* 1. Alpine Sage (Light) */}
+                <div
+                  onClick={() => {
+                    setTheme('light');
+                    showToast('Switched to Alpine Sage (Light Mode)');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    border: theme === 'light' ? '2px solid #176B50' : '1px solid #DCE7DE',
+                    backgroundColor: theme === 'light' ? '#EAF1EB' : '#FFFFFF',
+                    cursor: 'pointer',
+                    boxShadow: theme === 'light' ? '0 4px 12px rgba(23, 107, 80, 0.15)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff'
+                    }}>
+                      <Sun size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#182A22', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>Alpine Sage</span>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', backgroundColor: '#E0EDE3', color: '#176B50' }}>LIGHT</span>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#52695B', marginTop: '2px' }}>
+                        Forest Green, Sage, and clean canvas. Crisp high-contrast daylight aesthetic.
+                      </div>
+                    </div>
+                  </div>
+                  {theme === 'light' && (
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: '#176B50', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Check size={14} />
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Obsidian Forest (Dark) */}
+                <div
+                  onClick={() => {
+                    setTheme('dark');
+                    showToast('Switched to Obsidian Forest (Dark Mode)');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    border: theme === 'dark' ? '2px solid #C5F277' : '1px solid #2C4538',
+                    backgroundColor: theme === 'dark' ? '#132B22' : '#0D241C',
+                    cursor: 'pointer',
+                    boxShadow: theme === 'dark' ? '0 4px 16px rgba(0, 0, 0, 0.4)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, #153B2F 0%, #2C7956 55%, #C5F277 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#091B17'
+                    }}>
+                      <Moon size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#F1F7F2', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>Obsidian Forest</span>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', backgroundColor: '#294537', color: '#C5F277' }}>DARK</span>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#A5BAAD', marginTop: '2px' }}>
+                        Obsidian Forest canvas with Lime accents and Emerald Sage highlights.
+                      </div>
+                    </div>
+                  </div>
+                  {theme === 'dark' && (
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: '#C5F277', color: '#091B17', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Check size={14} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button
+                  onClick={() => setActiveModal('none')}
+                  style={{
+                    padding: '9px 22px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: 'var(--brand-primary, #176B50)',
+                    color: 'var(--interactive-primary-text, #ffffff)',
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

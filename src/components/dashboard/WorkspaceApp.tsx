@@ -51,9 +51,12 @@ import {
   Play,
   Tag,
   DollarSign,
-  Lock
+  Lock,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { INITIAL_TASKS } from '../../data/clickupData';
 import { TaskItem } from '../../types';
 import { KanbanBoard } from './KanbanBoard';
@@ -96,30 +99,30 @@ interface WorkspaceAppProps {
   onBackToLanding: () => void;
 }
 
-// ClickUp AI Petal Logo Component
+// OneDesk AI Petal Logo Component (Alpine Sage × Obsidian Forest)
 const ClickUpPetalIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="7" r="4.2" fill="#ff72e5" />
-    <circle cx="17" cy="12" r="4.2" fill="#00c0f3" />
-    <circle cx="12" cy="17" r="4.2" fill="#7b68ee" />
-    <circle cx="7" cy="12" r="4.2" fill="#f89d13" />
+    <circle cx="12" cy="7" r="4.2" fill="var(--brand-sage, #58A681)" />
+    <circle cx="17" cy="12" r="4.2" fill="var(--brand-mint, #A8C5B2)" />
+    <circle cx="12" cy="17" r="4.2" fill="var(--brand-primary, #176B50)" />
+    <circle cx="7" cy="12" r="4.2" fill="var(--brand-highlight, #75B98B)" />
     <circle cx="12" cy="12" r="3.2" fill="#ffffff" />
   </svg>
 );
 
-// 1. Home Glowing Orb with ClickUp smile (Screenshot 1)
+// 1. Home Glowing Orb with Alpine Sage Forest gradient
 const ClickUpHomeOrb: React.FC<{ active?: boolean }> = ({ active }) => (
   <div style={{
     width: '36px',
     height: '36px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle at 50% 35%, #ff3399 0%, #a855f7 45%, #3b0764 85%)',
+    background: 'radial-gradient(circle at 50% 35%, var(--brand-sage, #58A681) 0%, var(--brand-primary, #176B50) 55%, var(--brand-forest, #123D32) 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: active 
-      ? '0 0 16px rgba(255, 51, 153, 0.75), 0 0 8px rgba(168, 85, 247, 0.5)' 
-      : '0 0 12px rgba(255, 51, 153, 0.55), 0 0 6px rgba(168, 85, 247, 0.35)',
+      ? '0 0 16px rgba(23, 107, 80, 0.75), 0 0 8px rgba(88, 166, 129, 0.5)' 
+      : '0 0 12px rgba(23, 107, 80, 0.5), 0 0 6px rgba(88, 166, 129, 0.35)',
     position: 'relative'
   }}>
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -128,10 +131,10 @@ const ClickUpHomeOrb: React.FC<{ active?: boolean }> = ({ active }) => (
         d="M12 4.2C12.7 4.2 13.3 4.6 13.8 5.1L18.4 9.3C19.1 9.9 19.5 10.8 19.5 11.7V17.5C19.5 19.4 17.9 21 16 21H8C6.1 21 4.5 19.4 4.5 17.5V11.7C4.5 10.8 4.9 9.9 5.6 9.3L10.2 5.1C10.7 4.6 11.3 4.2 12 4.2Z" 
         fill="#ffffff" 
       />
-      {/* ClickUp pink/magenta smile */}
+      {/* Alpine Mint Accent curve */}
       <path 
         d="M8.5 13C9.8 15.6 14.2 15.6 15.5 13" 
-        stroke="#db2777" 
+        stroke="var(--brand-mint, #E6EFE8)" 
         strokeWidth="2.4" 
         strokeLinecap="round" 
       />
@@ -309,6 +312,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
   });
 
   const isDemoUser = user?.id === 'u_joy_1';
+  const { theme, toggleTheme } = useTheme();
   const currentUserName = user?.name || 'You';
   const userRole = user?.role || 'Workspace Owner';
   const isAdmin = userRole.toLowerCase().includes('admin') || userRole.toLowerCase().includes('owner');
@@ -606,7 +610,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      backgroundColor: '#ffffff',
+      backgroundColor: 'var(--bg-canvas, #F7F9F6)',
+      color: 'var(--text-primary, #182A22)',
       overflow: 'hidden',
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
     }}>
@@ -615,8 +620,8 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
       {/* ======================================================== */}
       <header style={{
         height: '46px',
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #eaebf0',
+        backgroundColor: 'var(--bg-surface, #ffffff)',
+        borderBottom: '1px solid var(--border-subtle, #E8EEE9)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -866,6 +871,27 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
             >
               <BarChart3 size={16} color="#64748b" />
             </span>
+
+            {/* Quick Theme Toggle (Alpine Sage × Obsidian Forest) */}
+            <button
+              onClick={toggleTheme}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '28px',
+                height: '28px',
+                borderRadius: '8px',
+                backgroundColor: theme === 'dark' ? '#132B22' : '#F0F4F0',
+                border: theme === 'dark' ? '1px solid #2C4538' : '1px solid #DCE7DE',
+                color: theme === 'dark' ? '#C5F277' : '#176B50',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title={theme === 'dark' ? 'Switch to Alpine Sage (Light Mode)' : 'Switch to Obsidian Forest (Dark Mode)'}
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
           </div>
 
           {/* User Avatar with Green Dot (Matches Screenshot) */}
@@ -877,7 +903,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
                 width: '28px',
                 height: '28px',
                 borderRadius: '50%',
-                backgroundColor: '#7c3aed',
+                backgroundColor: 'var(--brand-primary, #176B50)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -938,7 +964,7 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
         {/* Leftmost Dark Icon Rail (Matches Screenshot 1 & 2 precisely) */}
         <div style={{
           width: '56px',
-          backgroundColor: '#000000',
+          backgroundColor: 'var(--bg-icon-rail, #123D32)',
           borderRadius: '16px',
           margin: '4px 0 6px 6px',
           height: 'calc(100vh - 56px)',
@@ -1182,12 +1208,12 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
           </div>
         </div>
 
-        {/* Inner Left Workspace Sidebar (Tree Navigation matching Screenshot) - Hidden on Planner, AI, Teams, Dashboards, Whiteboards, Timesheets, Docs, Forms, Clips, Goals, Chat Launchpad, Spaces Overview, Sprints, Agents, Automations */}
+        {/* Inner Left Workspace Sidebar (Tree Navigation matching Screenshot) */}
         {activeTab !== 'planner' && activeTab !== 'ai' && activeTab !== 'teams' && activeTab !== 'analytics' && activeTab !== 'whiteboard' && activeTab !== 'timesheet' && activeTab !== 'docs' && activeTab !== 'forms' && activeTab !== 'clips' && activeTab !== 'goals' && activeTab !== 'chat_launchpad' && activeTab !== 'spaces_overview' && activeTab !== 'sprints' && activeTab !== 'agents' && activeTab !== 'automations' && (
           <aside style={{
           width: isSidebarCollapsed ? '48px' : '216px',
-          backgroundColor: '#fafbfc',
-          borderRight: '1px solid #eaebf0',
+          backgroundColor: 'var(--bg-sidebar, #F0F4F0)',
+          borderRight: '1px solid var(--border-subtle, #E8EEE9)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',

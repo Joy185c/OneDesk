@@ -795,7 +795,7 @@ export const DocsView: React.FC = () => {
                 {/* Location */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#64748b' }}>
                   {doc.location.includes('CRM') ? (
-                    <span style={{ color: '#7c3aed' }}># {doc.location}</span>
+                    <span style={{ color: 'var(--brand-primary, #176B50)' }}># {doc.location}</span>
                   ) : doc.location.includes('Agent') ? (
                     <span style={{ color: '#ec4899' }}>🌸 {doc.location}</span>
                   ) : (
@@ -900,8 +900,8 @@ export const DocsView: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  backgroundColor: '#7c3aed',
-                  color: '#ffffff',
+                  backgroundColor: 'var(--brand-primary, #176B50)',
+                  color: 'var(--interactive-primary-text, #ffffff)',
                   border: 'none',
                   borderRadius: '8px',
                   padding: '6px 14px',
