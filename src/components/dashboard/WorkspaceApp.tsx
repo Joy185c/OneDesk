@@ -525,8 +525,13 @@ export const WorkspaceApp: React.FC<WorkspaceAppProps> = ({ onBackToLanding }) =
       if (!isMounted) return;
       setIsSyncingSupabase(false);
       if (error) {
-        showToast(`⚠️ Cloud connection notice: ${error}`);
-      } else {
+        if (error.toLowerCase().includes('failed to fetch') || error.toLowerCase().includes('network')) {
+          console.warn('[OneDesk Cloud] Network reconnecting in background...');
+        } else {
+          showToast(`⚠️ Cloud connection notice: ${error}`);
+        }
+      }
+      if (loaded && loaded.length > 0) {
         setTasks(loaded);
       }
     };

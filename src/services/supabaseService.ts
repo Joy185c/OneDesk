@@ -53,9 +53,26 @@ export const supabaseService = {
         }
       }));
 
+      // Cache tasks locally for offline / reconnect resilience
+      try {
+        const cacheKey = userId ? `clickjoy_saved_tasks_${userId}` : 'clickjoy_saved_tasks';
+        localStorage.setItem(cacheKey, JSON.stringify(mappedTasks));
+      } catch {}
+
       return { tasks: mappedTasks };
     } catch (err: any) {
       console.error('[OneDesk DB] Unexpected error fetching tasks:', err);
+      // Fallback to cache if available during offline / network drop
+      try {
+        const cacheKey = userId ? `clickjoy_saved_tasks_${userId}` : 'clickjoy_saved_tasks';
+        const stored = localStorage.getItem(cacheKey) || localStorage.getItem('clickjoy_saved_tasks');
+        if (stored) {
+          const cached = JSON.parse(stored);
+          if (Array.isArray(cached) && cached.length > 0) {
+            return { tasks: cached };
+          }
+        }
+      } catch {}
       return { tasks: [], error: err.message || 'Failed to fetch tasks from database' };
     }
   },
