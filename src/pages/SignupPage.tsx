@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
+import { SocialAuthButtons } from '../components/auth/SocialAuthButtons';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User, Check, ArrowRight, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -78,18 +79,40 @@ export const SignupPage: React.FC = () => {
   return (
     <AuthLayout
       title="Create your OneDesk Account"
-      subtitle="Start managing projects, tasks, and sprint goals in minutes."
-      badge="Supabase Email Auth"
+      subtitle="Start managing projects, sprint goals, and team collaboration in minutes."
+      badge="Free Workspace"
     >
+      {/* OAuth Social Buttons First */}
+      <div style={{ marginBottom: '18px' }}>
+        <SocialAuthButtons onError={(err) => setErrorMessage(err)} />
+      </div>
+
+      {/* Or Divider */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        margin: '18px 0',
+        color: 'var(--text-muted, #71877B)',
+        fontSize: '0.78rem',
+        fontWeight: 600,
+        textTransform: 'uppercase'
+      }}>
+        <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-default, #DCE7DE)' }} />
+        <span>or sign up with email</span>
+        <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-default, #DCE7DE)' }} />
+      </div>
+
       {errorMessage && (
         <div style={{
-          backgroundColor: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          color: '#fca5a5',
-          padding: '10px 14px',
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#991b1b',
+          padding: '11px 14px',
           borderRadius: '10px',
-          fontSize: '0.82rem',
-          marginBottom: '18px',
+          fontSize: '0.84rem',
+          fontWeight: 600,
+          marginBottom: '16px',
           lineHeight: 1.4
         }}>
           {errorMessage}
@@ -99,11 +122,11 @@ export const SignupPage: React.FC = () => {
       {/* Registration Form */}
       <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div>
-          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary, #182A22)', marginBottom: '6px' }}>
             Full Name
           </label>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <User size={16} color="#64748b" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
+            <User size={16} color="var(--text-muted, #71877B)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
             <input
               type="text"
               value={name}
@@ -114,26 +137,33 @@ export const SignupPage: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '11px 12px 11px 38px',
-                backgroundColor: '#0d131f',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+                border: '1.5px solid var(--border-default, #DCE7DE)',
                 borderRadius: '10px',
-                color: '#ffffff',
-                fontSize: '0.9rem',
+                color: 'var(--text-primary, #182A22)',
+                fontSize: '0.92rem',
                 outline: 'none',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                transition: 'border-color 0.15s, box-shadow 0.15s'
               }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--brand-primary, #176B50)'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--brand-primary, #176B50)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(23, 107, 80, 0.12)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border-default, #DCE7DE)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
         </div>
 
         <div>
-          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary, #182A22)', marginBottom: '6px' }}>
             Work Email
           </label>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Mail size={16} color="#64748b" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
+            <Mail size={16} color="var(--text-muted, #71877B)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
             <input
               type="email"
               value={email}
@@ -144,26 +174,33 @@ export const SignupPage: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '11px 12px 11px 38px',
-                backgroundColor: '#0d131f',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+                border: '1.5px solid var(--border-default, #DCE7DE)',
                 borderRadius: '10px',
-                color: '#ffffff',
-                fontSize: '0.9rem',
+                color: 'var(--text-primary, #182A22)',
+                fontSize: '0.92rem',
                 outline: 'none',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                transition: 'border-color 0.15s, box-shadow 0.15s'
               }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--brand-primary, #176B50)'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--brand-primary, #176B50)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(23, 107, 80, 0.12)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border-default, #DCE7DE)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
         </div>
 
         <div>
-          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary, #182A22)', marginBottom: '6px' }}>
             Password
           </label>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
+            <Lock size={16} color="var(--text-muted, #71877B)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
@@ -174,16 +211,23 @@ export const SignupPage: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '11px 40px 11px 38px',
-                backgroundColor: '#0d131f',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+                border: '1.5px solid var(--border-default, #DCE7DE)',
                 borderRadius: '10px',
-                color: '#ffffff',
-                fontSize: '0.9rem',
+                color: 'var(--text-primary, #182A22)',
+                fontSize: '0.92rem',
                 outline: 'none',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                transition: 'border-color 0.15s, box-shadow 0.15s'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--brand-primary, #176B50)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(23, 107, 80, 0.12)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border-default, #DCE7DE)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
             <button
               type="button"
@@ -193,7 +237,7 @@ export const SignupPage: React.FC = () => {
                 right: '12px',
                 background: 'none',
                 border: 'none',
-                color: '#64748b',
+                color: 'var(--text-muted, #71877B)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -208,10 +252,10 @@ export const SignupPage: React.FC = () => {
           {password && (
             <div style={{ marginTop: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Password Strength:</span>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: strengthColor }}>{strengthLabel}</span>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary, #52695B)' }}>Password Strength:</span>
+                <span style={{ fontSize: '0.74rem', fontWeight: 800, color: strengthColor }}>{strengthLabel}</span>
               </div>
-              <div style={{ width: '100%', height: '4px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '4px', backgroundColor: 'var(--border-default, #DCE7DE)', borderRadius: '2px', overflow: 'hidden' }}>
                 <div style={{
                   width: `${(strengthScore / 4) * 100}%`,
                   height: '100%',
@@ -221,18 +265,18 @@ export const SignupPage: React.FC = () => {
               </div>
 
               {/* Requirement Checklist */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginTop: '6px', fontSize: '0.7rem' }}>
-                <span style={{ color: hasMinLength ? '#10b981' : '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Check size={11} color={hasMinLength ? '#10b981' : '#64748b'} /> 8+ characters
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginTop: '6px', fontSize: '0.72rem' }}>
+                <span style={{ color: hasMinLength ? '#16a34a' : 'var(--text-muted, #71877B)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                  <Check size={12} color={hasMinLength ? '#16a34a' : 'var(--text-muted, #71877B)'} /> 8+ characters
                 </span>
-                <span style={{ color: hasUppercase ? '#10b981' : '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Check size={11} color={hasUppercase ? '#10b981' : '#64748b'} /> Uppercase letter
+                <span style={{ color: hasUppercase ? '#16a34a' : 'var(--text-muted, #71877B)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                  <Check size={12} color={hasUppercase ? '#16a34a' : 'var(--text-muted, #71877B)'} /> Uppercase letter
                 </span>
-                <span style={{ color: hasNumber ? '#10b981' : '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Check size={11} color={hasNumber ? '#10b981' : '#64748b'} /> Number (0-9)
+                <span style={{ color: hasNumber ? '#16a34a' : 'var(--text-muted, #71877B)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                  <Check size={12} color={hasNumber ? '#16a34a' : 'var(--text-muted, #71877B)'} /> Number (0-9)
                 </span>
-                <span style={{ color: hasSpecial ? '#10b981' : '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Check size={11} color={hasSpecial ? '#10b981' : '#64748b'} /> Special character
+                <span style={{ color: hasSpecial ? '#16a34a' : 'var(--text-muted, #71877B)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                  <Check size={12} color={hasSpecial ? '#16a34a' : 'var(--text-muted, #71877B)'} /> Special character
                 </span>
               </div>
             </div>
@@ -240,11 +284,11 @@ export const SignupPage: React.FC = () => {
         </div>
 
         <div>
-          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#e2e8f0', marginBottom: '6px' }}>
+          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary, #182A22)', marginBottom: '6px' }}>
             Confirm Password
           </label>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
+            <Lock size={16} color="var(--text-muted, #71877B)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
@@ -255,16 +299,23 @@ export const SignupPage: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '11px 40px 11px 38px',
-                backgroundColor: '#0d131f',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+                border: '1.5px solid var(--border-default, #DCE7DE)',
                 borderRadius: '10px',
-                color: '#ffffff',
-                fontSize: '0.9rem',
+                color: 'var(--text-primary, #182A22)',
+                fontSize: '0.92rem',
                 outline: 'none',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                transition: 'border-color 0.15s, box-shadow 0.15s'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#7c3aed'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--brand-primary, #176B50)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(23, 107, 80, 0.12)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border-default, #DCE7DE)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
             <button
               type="button"
@@ -274,7 +325,7 @@ export const SignupPage: React.FC = () => {
                 right: '12px',
                 background: 'none',
                 border: 'none',
-                color: '#64748b',
+                color: 'var(--text-muted, #71877B)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -294,7 +345,7 @@ export const SignupPage: React.FC = () => {
             onChange={(e) => setAgreeTerms(e.target.checked)}
             style={{ accentColor: 'var(--brand-primary, #176B50)', cursor: 'pointer', marginTop: '3px' }}
           />
-          <label htmlFor="terms" style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.4, cursor: 'pointer' }}>
+          <label htmlFor="terms" style={{ fontSize: '0.8rem', color: 'var(--text-secondary, #52695B)', lineHeight: 1.4, cursor: 'pointer', fontWeight: 500 }}>
             I agree to the OneDesk Terms of Service and Privacy Policy.
           </label>
         </div>
@@ -307,18 +358,18 @@ export const SignupPage: React.FC = () => {
             padding: '12px',
             borderRadius: '10px',
             border: 'none',
-            background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
+            background: 'linear-gradient(135deg, #176B50 0%, #11533E 100%)',
             color: '#ffffff',
-            fontSize: '0.92rem',
-            fontWeight: 700,
+            fontSize: '0.94rem',
+            fontWeight: 800,
             cursor: isSubmitting ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            boxShadow: '0 8px 24px rgba(23, 107, 80, 0.35)',
+            boxShadow: '0 6px 20px rgba(23, 107, 80, 0.3)',
             marginTop: '6px',
-            transition: 'transform 0.15s'
+            transition: 'transform 0.15s, box-shadow 0.15s'
           }}
           onMouseEnter={(e) => !isSubmitting && (e.currentTarget.style.transform = 'translateY(-1px)')}
           onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
@@ -338,9 +389,9 @@ export const SignupPage: React.FC = () => {
       </form>
 
       {/* Switch to Login */}
-      <div style={{ textAlign: 'center', marginTop: '22px', fontSize: '0.84rem', color: '#94a3b8' }}>
+      <div style={{ textAlign: 'center', marginTop: '22px', fontSize: '0.86rem', color: 'var(--text-secondary, #52695B)' }}>
         Already have an account?{' '}
-        <Link to="/login" style={{ color: '#a78bfa', fontWeight: 700, textDecoration: 'none' }}>
+        <Link to="/login" style={{ color: 'var(--brand-primary, #176B50)', fontWeight: 800, textDecoration: 'none' }}>
           Sign in here
         </Link>
       </div>

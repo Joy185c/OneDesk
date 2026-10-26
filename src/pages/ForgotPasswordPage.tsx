@@ -53,27 +53,28 @@ export const ForgotPasswordPage: React.FC = () => {
           padding: '16px 0'
         }}>
           <div style={{
-            width: '54px',
-            height: '54px',
+            width: '56px',
+            height: '56px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
-            color: '#10b981',
+            backgroundColor: 'var(--bg-selected, #e8f5ee)',
+            color: 'var(--brand-primary, #176B50)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 16px'
+            margin: '0 auto 16px',
+            border: '1.5px solid #bbf7d0'
           }}>
-            <CheckCircle2 size={28} />
+            <CheckCircle2 size={30} />
           </div>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary, #182A22)' }}>
             Recovery Email Dispatched
           </h3>
-          <p style={{ fontSize: '0.86rem', color: '#94a3b8', lineHeight: 1.5, margin: '0 0 20px 0' }}>
-            We have sent a secure password reset link to <strong style={{ color: '#ffffff' }}>{email}</strong>. Please check your inbox and spam folder.
+          <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary, #52695B)', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+            We sent a secure password reset link to <strong style={{ color: 'var(--brand-primary, #176B50)' }}>{email}</strong>. Please check your inbox and spam folder.
           </p>
 
           {cooldown > 0 ? (
-            <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '16px' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #71877B)', marginBottom: '16px' }}>
               Resend available in {cooldown}s
             </p>
           ) : (
@@ -83,8 +84,8 @@ export const ForgotPasswordPage: React.FC = () => {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#a78bfa',
-                fontSize: '0.84rem',
+                color: 'var(--brand-primary, #176B50)',
+                fontSize: '0.86rem',
                 fontWeight: 700,
                 cursor: 'pointer',
                 marginBottom: '16px',
@@ -102,9 +103,9 @@ export const ForgotPasswordPage: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                color: '#cbd5e1',
-                fontSize: '0.84rem',
-                fontWeight: 600,
+                color: 'var(--brand-primary, #176B50)',
+                fontSize: '0.86rem',
+                fontWeight: 700,
                 textDecoration: 'none'
               }}
             >
@@ -117,12 +118,13 @@ export const ForgotPasswordPage: React.FC = () => {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {errorMessage && (
             <div style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#fca5a5',
-              padding: '10px 14px',
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#991b1b',
+              padding: '11px 14px',
               borderRadius: '10px',
-              fontSize: '0.82rem',
+              fontSize: '0.84rem',
+              fontWeight: 600,
               lineHeight: 1.4
             }}>
               {errorMessage}
@@ -130,18 +132,15 @@ export const ForgotPasswordPage: React.FC = () => {
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary, #182A22)', marginBottom: '6px' }}>
               Account Email Address
             </label>
             <div style={{
+              position: 'relative',
               display: 'flex',
-              alignItems: 'center',
-              backgroundColor: '#1e293b',
-              borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              padding: '0 12px'
+              alignItems: 'center'
             }}>
-              <Mail size={16} color="#64748b" />
+              <Mail size={16} color="var(--text-muted, #71877B)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
               <input
                 type="email"
                 required
@@ -149,13 +148,15 @@ export const ForgotPasswordPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
-                  flex: 1,
-                  padding: '11px 10px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '0.9rem',
-                  outline: 'none'
+                  width: '100%',
+                  padding: '11px 12px 11px 38px',
+                  backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+                  border: '1.5px solid var(--border-default, #DCE7DE)',
+                  borderRadius: '10px',
+                  color: 'var(--text-primary, #182A22)',
+                  fontSize: '0.92rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
@@ -167,33 +168,41 @@ export const ForgotPasswordPage: React.FC = () => {
             style={{
               width: '100%',
               padding: '12px',
-              borderRadius: '12px',
+              borderRadius: '10px',
               border: 'none',
-              background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
+              background: 'linear-gradient(135deg, #176B50 0%, #11533E 100%)',
               color: '#ffffff',
-              fontSize: '0.92rem',
-              fontWeight: 700,
+              fontSize: '0.94rem',
+              fontWeight: 800,
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              boxShadow: '0 8px 24px rgba(23, 107, 80, 0.35)',
+              boxShadow: '0 6px 20px rgba(23, 107, 80, 0.3)',
               marginTop: '4px'
             }}
           >
-            {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <span>Send Password Reset Link</span>}
+            {isSubmitting ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Sending Instructions...</span>
+              </>
+            ) : (
+              <span>Send Recovery Email</span>
+            )}
           </button>
 
-          <div style={{ textAlign: 'center', marginTop: '10px' }}>
+          <div style={{ textAlign: 'center', marginTop: '12px' }}>
             <Link
               to="/login"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                color: '#94a3b8',
-                fontSize: '0.82rem',
+                color: 'var(--brand-primary, #176B50)',
+                fontSize: '0.84rem',
+                fontWeight: 700,
                 textDecoration: 'none'
               }}
             >

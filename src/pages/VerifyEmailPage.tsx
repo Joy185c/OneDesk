@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Mail, CheckCircle2, Loader2, ArrowRight, ExternalLink, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Mail, CheckCircle2, Loader2, ExternalLink, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const VerifyEmailPage: React.FC = () => {
@@ -118,52 +118,52 @@ export const VerifyEmailPage: React.FC = () => {
   return (
     <AuthLayout
       title="Check your Email"
-      subtitle="We have sent a verification link to confirm your Supabase account."
+      subtitle="We have sent a verification link to confirm your OneDesk account."
       badge="Confirmation Sent"
     >
       {/* Visual Envelope */}
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '22px' }}>
         <div style={{
-          width: '64px',
-          height: '64px',
+          width: '68px',
+          height: '68px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(124, 58, 237, 0.15)',
-          border: '1px solid rgba(124, 58, 237, 0.3)',
-          color: '#a78bfa',
+          backgroundColor: 'var(--bg-selected, #e8f5ee)',
+          border: '1.5px solid var(--border-default, #bbf7d0)',
+          color: 'var(--brand-primary, #176B50)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto 16px',
-          boxShadow: '0 0 30px rgba(124, 58, 237, 0.25)'
+          boxShadow: '0 8px 24px rgba(23, 107, 80, 0.12)'
         }}>
           <Mail size={32} />
         </div>
 
-        <p style={{ fontSize: '0.88rem', color: '#94a3b8', margin: '0 0 8px 0', lineHeight: 1.5 }}>
+        <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary, #52695B)', margin: '0 0 8px 0', lineHeight: 1.5 }}>
           A confirmation email was dispatched to:
         </p>
         <div style={{
           display: 'inline-block',
-          backgroundColor: '#0d131f',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          padding: '6px 16px',
+          backgroundColor: 'var(--bg-selected, #e8f5ee)',
+          border: '1.5px solid #86efac',
+          padding: '6px 18px',
           borderRadius: '100px',
-          color: '#ffffff',
-          fontWeight: 700,
+          color: 'var(--brand-primary, #176B50)',
+          fontWeight: 800,
           fontSize: '0.94rem',
-          letterSpacing: '0.3px',
+          letterSpacing: '0.2px',
           marginBottom: '16px'
         }}>
           {email || 'your email address'}
         </div>
 
-        <p style={{ fontSize: '0.84rem', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
-          Open your email inbox and click <strong style={{ color: '#ffffff' }}>&quot;Confirm your mail&quot;</strong> to activate your OneDesk account.
+        <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary, #52695B)', margin: 0, lineHeight: 1.5 }}>
+          Open your email inbox and click <strong style={{ color: 'var(--brand-primary, #176B50)', fontWeight: 800 }}>&quot;Confirm your mail&quot;</strong> to activate your OneDesk account.
         </p>
       </div>
 
       {/* Direct Webmail Shortcut Button */}
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '14px' }}>
         <a
           href={webmailUrl}
           target="_blank"
@@ -172,16 +172,16 @@ export const VerifyEmailPage: React.FC = () => {
             width: '100%',
             padding: '12px',
             borderRadius: '10px',
-            background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
+            background: 'linear-gradient(135deg, #176B50 0%, #11533E 100%)',
             color: '#ffffff',
-            fontSize: '0.92rem',
-            fontWeight: 700,
+            fontSize: '0.94rem',
+            fontWeight: 800,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
             textDecoration: 'none',
-            boxShadow: '0 8px 24px rgba(23, 107, 80, 0.35)',
+            boxShadow: '0 6px 20px rgba(23, 107, 80, 0.28)',
             boxSizing: 'border-box',
             transition: 'transform 0.15s'
           }}
@@ -194,7 +194,7 @@ export const VerifyEmailPage: React.FC = () => {
       </div>
 
       {/* I have confirmed link button */}
-      <div style={{ marginBottom: '18px' }}>
+      <div style={{ marginBottom: '16px' }}>
         <button
           type="button"
           onClick={handleCheckSession}
@@ -202,22 +202,28 @@ export const VerifyEmailPage: React.FC = () => {
             width: '100%',
             padding: '11px',
             borderRadius: '10px',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            color: '#ffffff',
-            fontSize: '0.86rem',
-            fontWeight: 600,
+            backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+            border: '1.5px solid var(--border-default, #DCE7DE)',
+            color: 'var(--text-primary, #182A22)',
+            fontSize: '0.88rem',
+            fontWeight: 700,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            transition: 'background-color 0.15s'
+            transition: 'all 0.15s ease'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = 'var(--brand-primary, #176B50)';
+            e.currentTarget.style.backgroundColor = 'var(--bg-surface-secondary, #F0F4F0)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = 'var(--border-default, #DCE7DE)';
+            e.currentTarget.style.backgroundColor = 'var(--bg-canvas, #F0F4F0)';
+          }}
         >
-          <CheckCircle2 size={16} color="#10b981" />
+          <CheckCircle2 size={16} color="var(--brand-primary, #176B50)" />
           <span>I have confirmed my email → Sign in</span>
         </button>
       </div>
@@ -225,12 +231,13 @@ export const VerifyEmailPage: React.FC = () => {
       {/* Messages */}
       {successMessage && (
         <div style={{
-          backgroundColor: 'rgba(16, 185, 129, 0.15)',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
-          color: '#6ee7b7',
+          backgroundColor: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          color: '#166534',
           padding: '10px 14px',
           borderRadius: '10px',
-          fontSize: '0.82rem',
+          fontSize: '0.84rem',
+          fontWeight: 600,
           marginBottom: '16px',
           textAlign: 'center'
         }}>
@@ -240,12 +247,13 @@ export const VerifyEmailPage: React.FC = () => {
 
       {errorMessage && (
         <div style={{
-          backgroundColor: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          color: '#fca5a5',
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          color: '#991b1b',
           padding: '10px 14px',
           borderRadius: '10px',
-          fontSize: '0.82rem',
+          fontSize: '0.84rem',
+          fontWeight: 600,
           marginBottom: '16px',
           textAlign: 'center'
         }}>
@@ -254,9 +262,9 @@ export const VerifyEmailPage: React.FC = () => {
       )}
 
       {/* Resend Cooldown Section */}
-      <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
         {resendCooldown > 0 ? (
-          <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #71877B)', margin: 0, fontWeight: 500 }}>
             Resend confirmation link available in {resendCooldown}s
           </p>
         ) : (
@@ -266,8 +274,8 @@ export const VerifyEmailPage: React.FC = () => {
             style={{
               background: 'none',
               border: 'none',
-              color: '#a78bfa',
-              fontSize: '0.82rem',
+              color: 'var(--brand-primary, #176B50)',
+              fontSize: '0.84rem',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'inline-flex',
@@ -293,7 +301,7 @@ export const VerifyEmailPage: React.FC = () => {
 
       {/* Optional 6-Digit Code Fallback (Collapsible) */}
       <div style={{
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        borderTop: '1px solid var(--border-default, #DCE7DE)',
         paddingTop: '14px',
         marginTop: '8px'
       }}>
@@ -303,8 +311,9 @@ export const VerifyEmailPage: React.FC = () => {
           style={{
             background: 'none',
             border: 'none',
-            color: '#64748b',
-            fontSize: '0.76rem',
+            color: 'var(--text-secondary, #52695B)',
+            fontSize: '0.78rem',
+            fontWeight: 600,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -333,10 +342,10 @@ export const VerifyEmailPage: React.FC = () => {
                 letterSpacing: '6px',
                 fontSize: '1.2rem',
                 fontWeight: 800,
-                backgroundColor: '#0d131f',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+                border: '1.5px solid var(--border-default, #DCE7DE)',
                 borderRadius: '8px',
-                color: '#ffffff',
+                color: 'var(--text-primary, #182A22)',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -346,13 +355,13 @@ export const VerifyEmailPage: React.FC = () => {
               disabled={isVerifying}
               style={{
                 width: '100%',
-                padding: '9px',
+                padding: '10px',
                 borderRadius: '8px',
-                backgroundColor: '#7c3aed',
+                backgroundColor: 'var(--brand-primary, #176B50)',
                 color: '#ffffff',
                 border: 'none',
-                fontSize: '0.82rem',
-                fontWeight: 700,
+                fontSize: '0.86rem',
+                fontWeight: 800,
                 cursor: isVerifying ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -371,13 +380,11 @@ export const VerifyEmailPage: React.FC = () => {
         <Link
           to="/login"
           style={{
-            fontSize: '0.8rem',
-            color: '#64748b',
+            fontSize: '0.84rem',
+            color: 'var(--brand-primary, #176B50)',
             textDecoration: 'none',
-            fontWeight: 600
+            fontWeight: 700
           }}
-          onMouseEnter={(e) => e.currentTarget.style.color = '#a78bfa'}
-          onMouseLeave={(e) => e.currentTarget.style.color = '#64748b'}
         >
           ← Back to sign in
         </Link>

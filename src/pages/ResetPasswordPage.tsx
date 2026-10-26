@@ -64,28 +64,29 @@ export const ResetPasswordPage: React.FC = () => {
       {isSuccess ? (
         <div style={{ textAlign: 'center', padding: '16px 0' }}>
           <div style={{
-            width: '54px',
-            height: '54px',
+            width: '56px',
+            height: '56px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
-            color: '#10b981',
+            backgroundColor: 'var(--bg-selected, #e8f5ee)',
+            color: 'var(--brand-primary, #176B50)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 16px'
+            margin: '0 auto 16px',
+            border: '1.5px solid #bbf7d0'
           }}>
-            <CheckCircle2 size={28} />
+            <CheckCircle2 size={30} />
           </div>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary, #182A22)' }}>
             Password Updated!
           </h3>
-          <p style={{ fontSize: '0.86rem', color: '#94a3b8', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+          <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary, #52695B)', lineHeight: 1.5, margin: '0 0 16px 0' }}>
             Your account password has been successfully reset. Redirecting you to sign in...
           </p>
           <Link
             to="/login"
             style={{
-              color: '#a78bfa',
+              color: 'var(--brand-primary, #176B50)',
               fontSize: '0.86rem',
               fontWeight: 700,
               textDecoration: 'underline'
@@ -98,12 +99,13 @@ export const ResetPasswordPage: React.FC = () => {
         <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {errorMessage && (
             <div style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              color: '#fca5a5',
-              padding: '10px 14px',
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#991b1b',
+              padding: '11px 14px',
               borderRadius: '10px',
-              fontSize: '0.82rem',
+              fontSize: '0.84rem',
+              fontWeight: 600,
               lineHeight: 1.4
             }}>
               {errorMessage}
@@ -111,18 +113,15 @@ export const ResetPasswordPage: React.FC = () => {
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary, #182A22)', marginBottom: '6px' }}>
               New Password
             </label>
             <div style={{
+              position: 'relative',
               display: 'flex',
-              alignItems: 'center',
-              backgroundColor: '#1e293b',
-              borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              padding: '0 12px'
+              alignItems: 'center'
             }}>
-              <Lock size={16} color="#64748b" />
+              <Lock size={16} color="var(--text-muted, #71877B)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
@@ -130,19 +129,29 @@ export const ResetPasswordPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{
-                  flex: 1,
-                  padding: '11px 10px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '0.9rem',
-                  outline: 'none'
+                  width: '100%',
+                  padding: '11px 40px 11px 38px',
+                  backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+                  border: '1.5px solid var(--border-default, #DCE7DE)',
+                  borderRadius: '10px',
+                  color: 'var(--text-primary, #182A22)',
+                  fontSize: '0.92rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
                 }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted, #71877B)',
+                  cursor: 'pointer',
+                  padding: 0
+                }}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -150,18 +159,15 @@ export const ResetPasswordPage: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary, #182A22)', marginBottom: '6px' }}>
               Confirm New Password
             </label>
             <div style={{
+              position: 'relative',
               display: 'flex',
-              alignItems: 'center',
-              backgroundColor: '#1e293b',
-              borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              padding: '0 12px'
+              alignItems: 'center'
             }}>
-              <Lock size={16} color="#64748b" />
+              <Lock size={16} color="var(--text-muted, #71877B)" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
@@ -169,13 +175,15 @@ export const ResetPasswordPage: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 style={{
-                  flex: 1,
-                  padding: '11px 10px',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '0.9rem',
-                  outline: 'none'
+                  width: '100%',
+                  padding: '11px 40px 11px 38px',
+                  backgroundColor: 'var(--bg-canvas, #F0F4F0)',
+                  border: '1.5px solid var(--border-default, #DCE7DE)',
+                  borderRadius: '10px',
+                  color: 'var(--text-primary, #182A22)',
+                  fontSize: '0.92rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
@@ -187,18 +195,18 @@ export const ResetPasswordPage: React.FC = () => {
             style={{
               width: '100%',
               padding: '12px',
-              borderRadius: '12px',
+              borderRadius: '10px',
               border: 'none',
-              background: 'var(--brand-gradient, linear-gradient(135deg, #123D32 0%, #176B50 55%, #58A681 100%))',
+              background: 'linear-gradient(135deg, #176B50 0%, #11533E 100%)',
               color: '#ffffff',
-              fontSize: '0.92rem',
-              fontWeight: 700,
+              fontSize: '0.94rem',
+              fontWeight: 800,
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              boxShadow: '0 8px 24px rgba(23, 107, 80, 0.35)',
+              boxShadow: '0 6px 20px rgba(23, 107, 80, 0.3)',
               marginTop: '4px'
             }}
           >
